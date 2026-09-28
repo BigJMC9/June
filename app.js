@@ -760,7 +760,7 @@ if (desktop?.isDesktop) {
   minimizeButton?.addEventListener('click', () => desktop.minimizeWindow());
   maximizeButton?.addEventListener('click', async () => {
     const maximized = await desktop.toggleMaximizeWindow();
-    maximizeButton.textContent = maximized ? '❐' : '□';
+    maximizeButton.classList.toggle('is-maximized', maximized);
     maximizeButton.title = maximized ? 'Restore' : 'Maximize';
     maximizeButton.setAttribute('aria-label', maximized ? 'Restore' : 'Maximize');
   });
@@ -768,8 +768,9 @@ if (desktop?.isDesktop) {
 
   desktop.isWindowMaximized?.().then(maximized => {
     if (!maximizeButton) return;
-    maximizeButton.textContent = maximized ? '❐' : '□';
+    maximizeButton.classList.toggle('is-maximized', maximized);
     maximizeButton.title = maximized ? 'Restore' : 'Maximize';
+    maximizeButton.setAttribute('aria-label', maximized ? 'Restore' : 'Maximize');
   });
 }
 
