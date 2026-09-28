@@ -29,13 +29,10 @@
       <div class="sidebar-header">
         <button id="projectButton" class="project-switcher" aria-haspopup="listbox" aria-expanded="false">
           <span class="project-dot"></span>
-          <span class="project-name">June</span>
+          <span class="project-name">Select project</span>
           <svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg>
         </button>
         <div id="projectMenu" class="project-menu hidden" role="listbox">
-          <button data-project="June"><span class="project-dot"></span><span>June</span><small>~/Development/June</small></button>
-          <button data-project="JCOS"><span class="project-dot alt"></span><span>JCOS</span><small>~/Development/JCOS</small></button>
-          <button data-project="Jurat"><span class="project-dot warn"></span><span>Jurat</span><small>~/Development/Jurat</small></button>
           <div class="project-menu-sep"></div>
           <button id="addProjectBtn" class="muted-action">+ Add project</button>
         </div>
@@ -61,9 +58,9 @@
 
       <section class="side-section project-context">
         <div class="section-title-row"><span>Project</span><button title="Refresh project">↻</button></div>
-        <button class="context-row"><span>◫</span><div><strong>Repository</strong><small>BigJMC9/June</small></div></button>
-        <button class="context-row"><span>⑂</span><div><strong>Branch</strong><small>main</small></div></button>
-        <button class="context-row"><span>●</span><div><strong>Agent</strong><small class="status-ready">Ready</small></div></button>
+        <button class="context-row"><span>◫</span><div><strong>Repository</strong><small>No project</small></div></button>
+        <button class="context-row"><span>⑂</span><div><strong>Branch</strong><small>—</small></div></button>
+        <button class="context-row"><span>●</span><div><strong>Agent</strong><small>Backend not connected</small></div></button>
       </section>
 
       <div class="sidebar-footer">
@@ -75,7 +72,7 @@
       <header class="workspace-header">
         <div class="header-left">
           <button id="sidebarToggle" class="icon-btn" title="Toggle sidebar"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg></button>
-          <div class="breadcrumb"><span>June</span><span>/</span><strong>AI Coding Workspace</strong></div>
+          <div class="breadcrumb"><span>No project</span><span>/</span><strong>AI Coding Workspace</strong></div>
         </div>
         <div class="header-actions">
           <button id="backendStatusChip" class="chip" title="Configure the agent backend in Settings"><span class="backend-dot"></span><span>Backend not connected</span></button>
@@ -88,7 +85,7 @@
           <div class="conversation-toolbar">
             <div>
               <h1>New coding session</h1>
-              <p>Agent session · June</p>
+              <p>No local project selected</p>
             </div>
             <div class="toolbar-actions">
               <button class="icon-btn" title="Open terminal">⌁</button>
@@ -218,7 +215,8 @@
           <section class="settings-page hidden" data-settings-page="agent">
             <h3>Agent & pipeline</h3>
             <label class="setting-row"><span><strong>Default mode</strong><small>Initial interaction mode for new chats.</small></span><select id="settingAgentMode"><option value="agent">Agent</option><option value="ask">Ask</option><option value="plan">Plan</option></select></label>
-            <label class="setting-row setting-input"><span><strong>Backend URL</strong><small>HTTP endpoint for your custom June pipeline.</small></span><input id="settingBackendUrl" type="url" placeholder="http://127.0.0.1:8765" /></label>
+            <label class="setting-row setting-input"><span><strong>Backend URL</strong><small>HTTP endpoint for your custom June pipeline. Connection test calls <code>/health</code>.</small></span><input id="settingBackendUrl" type="url" placeholder="http://127.0.0.1:8765" /></label>
+            <div class="backend-test-row"><button id="testBackendBtn" class="outline-btn">Test connection</button><span id="backendTestResult">Not tested.</span></div>
             <label class="setting-row setting-input"><span><strong>Default model</strong><small>Model identifier sent to the agent backend.</small></span><input id="settingDefaultModel" type="text" placeholder="qwen3-coder" /></label>
             <label class="setting-row setting-input"><span><strong>Context budget</strong><small>Preferred maximum model context in tokens.</small></span><input id="settingContextBudget" type="number" min="1024" step="1024" /></label>
           </section>
