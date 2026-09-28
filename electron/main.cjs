@@ -1,5 +1,4 @@
 const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
-const fs = require('node:fs');
 const fsp = require('node:fs/promises');
 const path = require('node:path');
 const { execFile } = require('node:child_process');
@@ -309,6 +308,44 @@ async function removeProject(projectPath) {
   return true;
 }
 
+async function checkBackend(rawUrl) {
+  let url;
+  try {
+    url = new URL(String(rawUrl || '').trim());
+  } catch {
+    return { ok: false, status: 0, message: 'Enter a valid backend URL.' };
+  }
+
+  if (!['http:', 'https:'].includes(url.protocol)) {
+    return { ok: false, status: 0, message: 'Backend URL must use HTTP or HTTPS.' };
+  }
+
+  const healthUrl = new URL('health', url.href.endsWith('/') ? url.href : url.href + '/');
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3500);
+    const response = await fetch(healthUrl, {
+      method: 'GET',
+      signal: controller.signal,
+      headers: { accept: 'application/json, text/plain;q=0.8, */*;q=0.5' }
+    });
+    clearTimeout(timeout);
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      message: response.ok ? 'Backend reachable.' : 'Backend returned HTTP ' + response.status + '.'
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      message: error.name === 'AbortError' ? 'Backend connection timed out.' : 'Backend is not reachable.'
+    };
+  }
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1440,
@@ -388,6 +425,7 @@ function registerDesktopIpc() {
     searchFiles(projectPath, query, options)
   );
   ipcMain.handle('june:get-git-status', (_event, projectPath) => getGitStatus(projectPath));
+  ipcMain.handle('june:check-backend', (_event, backendUrl) => checkBackend(backendUrl));
   ipcMain.handle('june:reveal-path', (_event, projectPath, relativePath) =>
     revealPath(projectPath, relativePath)
   );
