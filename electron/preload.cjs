@@ -3,6 +3,10 @@ const { contextBridge, ipcRenderer } = require('electron');
 const desktopApi = Object.freeze({
   isDesktop: true,
   getRuntimeInfo: () => ipcRenderer.invoke('june:get-runtime-info'),
+  minimizeWindow: () => ipcRenderer.invoke('june:window-minimize'),
+  toggleMaximizeWindow: () => ipcRenderer.invoke('june:window-toggle-maximize'),
+  isWindowMaximized: () => ipcRenderer.invoke('june:window-is-maximized'),
+  closeWindow: () => ipcRenderer.invoke('june:window-close'),
   listProjects: () => ipcRenderer.invoke('june:list-projects'),
   selectProjectDirectory: () => ipcRenderer.invoke('june:select-project-directory'),
   removeProject: projectPath => ipcRenderer.invoke('june:remove-project', projectPath),
