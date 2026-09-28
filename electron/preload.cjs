@@ -13,6 +13,7 @@ const desktopApi = Object.freeze({
   searchFiles: (projectPath, query, options = {}) =>
     ipcRenderer.invoke('june:search-files', projectPath, query, options),
   getGitStatus: projectPath => ipcRenderer.invoke('june:get-git-status', projectPath),
+  checkBackend: backendUrl => ipcRenderer.invoke('june:check-backend', backendUrl),
   revealPath: (projectPath, relativePath = '') =>
     ipcRenderer.invoke('june:reveal-path', projectPath, relativePath)
 });
