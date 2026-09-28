@@ -785,6 +785,42 @@ composer.addEventListener('keydown', e => {
 
 $('#sendBtn').addEventListener('click', sendMessage);
 
+$('#modeBtn').addEventListener('click', () => {
+  const modes = ['agent', 'ask', 'plan'];
+  const currentIndex = modes.indexOf(state.settings.agentMode);
+  state.settings.agentMode = modes[(currentIndex + 1) % modes.length];
+  saveSettings();
+  syncSettingsForm();
+});
+
+$('#backendStatusChip').addEventListener('click', openSettings);
+
+$('#testBackendBtn').addEventListener('click', async () => {
+  const resultNode = $('#backendTestResult');
+  const button = $('#testBackendBtn');
+  button.disabled = true;
+  resultNode.textContent = 'Testing…';
+  resultNode.className = '';
+
+  try {
+    if (!desktop?.checkBackend) throw new Error('Desktop backend test unavailable.');
+    const result = await desktop.checkBackend(state.settings.backendUrl);
+    resultNode.textContent = result.message;
+    resultNode.className = result.ok ? 'status-ok' : 'status-error';
+
+    const chipText = $('#backendStatusChip span:last-child');
+    const chip = $('#backendStatusChip');
+    chip.classList.toggle('connected', Boolean(result.ok));
+    chip.classList.toggle('failed', !result.ok);
+    if (chipText) chipText.textContent = result.ok ? 'Backend connected' : 'Backend unavailable';
+  } catch (error) {
+    resultNode.textContent = error.message || 'Connection test failed.';
+    resultNode.className = 'status-error';
+  } finally {
+    button.disabled = false;
+  }
+});
+
 $('#closeSettingsBtn').addEventListener('click', closeSettings);
 $('#closeSettingsFooterBtn').addEventListener('click', closeSettings);
 settingsModal.addEventListener('click', event => {
