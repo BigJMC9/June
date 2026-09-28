@@ -360,3 +360,24 @@ html[data-density="compact"] .message { margin-bottom: 18px; }
   .settings-layout { grid-template-columns: 120px minmax(0,1fr); }
   .setting-row { grid-template-columns: 1fr; }
 }
+
+.backend-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  display: inline-block;
+}
+#backendStatusChip.connected .backend-dot { background: var(--green); }
+#backendStatusChip.failed .backend-dot { background: var(--red); }
+.backend-test-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0 2px;
+}
+.backend-test-row span { color: var(--muted); font-size: 9px; }
+.backend-test-row .status-ok { color: var(--green); }
+.backend-test-row .status-error { color: var(--red); }
+.outline-btn:disabled { opacity: .55; cursor: default; }
+.setting-row code { color: var(--accent); font-size: 9px; }
