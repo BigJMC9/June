@@ -724,8 +724,8 @@ projectButton.addEventListener('click', () => {
 
 $('#addProjectBtn').addEventListener('click', addProject);
 $('#searchBtn').addEventListener('click', openPalette);
-$('.header-actions .icon-btn').addEventListener('click', openPalette);
 $('#newChatBtn').addEventListener('click', newChat);
+$('#sidebarSettingsBtn').addEventListener('click', openSettings);
 $('#refreshFilesBtn').addEventListener('click', renderRootFiles);
 $('#refreshChangesBtn').addEventListener('click', refreshGitStatus);
 $('#revealProjectBtn').addEventListener('click', () => {
@@ -739,28 +739,39 @@ $('#closeFileBtn').addEventListener('click', showChatSurface);
 $('.project-context .section-title-row button').addEventListener('click', refreshWorkspace);
 
 $('#sidebarToggle').addEventListener('click', () => {
-  if (window.innerWidth <= 860) $('.sidebar').classList.toggle('mobile-open');
-  else document.body.classList.toggle('sidebar-collapsed');
+  if (window.innerWidth <= 860) {
+    $('.sidebar').classList.toggle('mobile-open');
+    return;
+  }
+
+  const collapsed = document.body.classList.toggle('sidebar-collapsed');
+  localStorage.setItem('june.sidebarCollapsed', collapsed ? '1' : '0');
 });
 
 $$('.workbench-tab').forEach(tab => tab.addEventListener('click', () => {
   activateWorkbenchTab(tab.dataset.tab);
 }));
 
-$$('.rail-btn').forEach(btn => btn.addEventListener('click', () => {
-  const view = btn.dataset.view;
-  if (view === 'search') {
-    openPalette();
-    return;
-  }
-  if (view === 'settings') {
-    openSettings();
-    return;
-  }
-  setActiveRail(view);
-  if (view === 'files') activateWorkbenchTab('files');
-  if (view === 'chat') showChatSurface();
-}));
+const minimizeButton = $('#windowMinimizeBtn');
+const maximizeButton = $('#windowMaximizeBtn');
+const closeWindowButton = $('#windowCloseBtn');
+
+if (desktop?.isDesktop) {
+  minimizeButton?.addEventListener('click', () => desktop.minimizeWindow());
+  maximizeButton?.addEventListener('click', async () => {
+    const maximized = await desktop.toggleMaximizeWindow();
+    maximizeButton.textContent = maximized ? '❐' : '□';
+    maximizeButton.title = maximized ? 'Restore' : 'Maximize';
+    maximizeButton.setAttribute('aria-label', maximized ? 'Restore' : 'Maximize');
+  });
+  closeWindowButton?.addEventListener('click', () => desktop.closeWindow());
+
+  desktop.isWindowMaximized?.().then(maximized => {
+    if (!maximizeButton) return;
+    maximizeButton.textContent = maximized ? '❐' : '□';
+    maximizeButton.title = maximized ? 'Restore' : 'Maximize';
+  });
+}
 
 palette.addEventListener('click', e => {
   if (e.target === palette) closePalette();
@@ -931,6 +942,9 @@ async function initProjects() {
 }
 
 applySettings();
+if (localStorage.getItem('june.sidebarCollapsed') === '1' && window.innerWidth > 860) {
+  document.body.classList.add('sidebar-collapsed');
+}
 syncSettingsForm();
 renderChatList();
 if (state.activeChatId && currentChat()) renderChat(currentChat());
