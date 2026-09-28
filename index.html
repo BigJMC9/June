@@ -7,24 +7,15 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="rail" aria-label="Primary navigation">
-      <div class="brand" title="June">J</div>
-      <button class="rail-btn active" data-view="chat" title="Chat" aria-label="Chat">
-        <svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4V5z"/></svg>
-      </button>
-      <button class="rail-btn" data-view="search" title="Search" aria-label="Search">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      </button>
-      <button class="rail-btn" data-view="files" title="Files" aria-label="Files">
-        <svg viewBox="0 0 24 24"><path d="M4 4h6l2 3h8v13H4z"/></svg>
-      </button>
-      <div class="rail-spacer"></div>
-      <button class="rail-btn" data-view="settings" title="Settings" aria-label="Settings">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1A7 7 0 0 0 15 6l-.3-2.6h-4L10.4 6A7 7 0 0 0 8 7.1l-2.4-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.4-1A7 7 0 0 0 10.4 18l.3 2.6h4L15 18a7 7 0 0 0 2.5-1.1l2.4 1 2-3.4-2-1.5a7 7 0 0 0 .1-1z"/></svg>
-      </button>
-    </aside>
+  <div class="desktop-titlebar" aria-label="Window controls">
+    <div class="window-controls">
+      <button id="windowMinimizeBtn" class="window-control" type="button" title="Minimize" aria-label="Minimize">—</button>
+      <button id="windowMaximizeBtn" class="window-control" type="button" title="Maximize" aria-label="Maximize">□</button>
+      <button id="windowCloseBtn" class="window-control close" type="button" title="Close" aria-label="Close">×</button>
+    </div>
+  </div>
 
+  <div class="app-shell">
     <aside class="sidebar">
       <div class="sidebar-header">
         <button id="projectButton" class="project-switcher" aria-haspopup="listbox" aria-expanded="false">
@@ -64,7 +55,10 @@
       </section>
 
       <div class="sidebar-footer">
-        <button class="profile-btn"><span class="avatar">J</span><span><strong>Jake</strong><small>Local workspace</small></span><span class="chev">›</span></button>
+        <button id="sidebarSettingsBtn" class="quick-action sidebar-settings-btn">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1A7 7 0 0 0 15 6l-.3-2.6h-4L10.4 6A7 7 0 0 0 8 7.1l-2.4-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.4-1A7 7 0 0 0 10.4 18l.3 2.6h4L15 18a7 7 0 0 0 2.5-1.1l2.4 1 2-3.4-2-1.5a7 7 0 0 0 .1-1z"/></svg>
+          <span>Settings</span><kbd>Ctrl ,</kbd>
+        </button>
       </div>
     </aside>
 
@@ -76,7 +70,7 @@
         </div>
         <div class="header-actions">
           <button id="backendStatusChip" class="chip" title="Configure the agent backend in Settings"><span class="backend-dot"></span><span>Backend not connected</span></button>
-          <button class="icon-btn" title="Command palette">⌘</button>
+
         </div>
       </header>
 
