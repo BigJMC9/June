@@ -504,3 +504,120 @@ html[data-theme="light"] .window-control.close:hover {
   body.sidebar-collapsed .app-shell { grid-template-columns: minmax(0,1fr); }
   body.sidebar-collapsed .workspace { grid-column: 1; }
 }
+
+
+/* Alignment pass: titlebar controls + sidebar actions */
+.window-control {
+  width: 46px;
+  min-width: 46px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.window-control-icon {
+  width: 12px;
+  height: 12px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.15;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  flex: 0 0 auto;
+}
+
+.maximize-icon .restore-box {
+  display: none;
+}
+.window-control.is-maximized .maximize-box {
+  display: none;
+}
+.window-control.is-maximized .restore-box {
+  display: block;
+}
+
+.quick-actions {
+  padding: 6px 10px 12px;
+}
+
+.quick-action {
+  min-height: 36px;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  column-gap: 10px;
+  padding: 7px 8px;
+  align-items: center;
+}
+
+.sidebar-action-icon {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  color: #82909d;
+}
+
+.sidebar-action-icon svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.sidebar-action-label {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  text-align: left;
+}
+
+.quick-action kbd {
+  min-width: 44px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.sidebar-footer .sidebar-settings-btn {
+  width: 100%;
+  min-height: 36px;
+  margin: 0;
+}
+
+.sidebar-header {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.project-switcher {
+  min-height: 36px;
+  padding: 7px 8px;
+}
+
+.project-context .context-row {
+  min-height: 38px;
+  align-items: center;
+}
+
+.section-title-row {
+  min-height: 22px;
+  align-items: center;
+}
+
+.workspace-header {
+  min-height: 48px;
+}
+
+.header-left {
+  min-height: 100%;
+}
