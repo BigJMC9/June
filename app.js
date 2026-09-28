@@ -32,12 +32,23 @@ function loadSettings() {
   }
 }
 
+function loadChats() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem('june.chats') || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 const state = {
   projects: [],
   project: null,
   activeFile: '',
   openFolders: new Set(),
   settings: loadSettings(),
+  chats: loadChats(),
+  activeChatId: localStorage.getItem('june.activeChatId') || '',
   searchTimer: null
 };
 
@@ -69,6 +80,11 @@ function applySettings() {
   $('#modeBtn').innerHTML = '<span class="mode-dot"></span>' +
     state.settings.agentMode.charAt(0).toUpperCase() +
     state.settings.agentMode.slice(1) + ' <span>⌄</span>';
+
+  const backendStatus = $('#backendStatusChip span:last-child');
+  if (backendStatus) {
+    backendStatus.textContent = state.settings.backendUrl ? 'Backend configured' : 'Backend not configured';
+  }
 }
 
 function formatBytes(bytes) {
@@ -346,7 +362,7 @@ async function openFile(relativePath) {
     $('#filePreviewMeta').textContent = formatBytes(file.size);
 
     if (file.tooLarge) {
-      $('#filePreviewCode').parentElement.classList.add('hidden');
+      $('#filePreviewCode').classList.add('hidden');
       $('#filePreviewNotice').textContent = 'This file is larger than the configured preview limit (' +
         formatBytes(Number(state.settings.previewLimit)) + ').';
       $('#filePreviewNotice').classList.remove('hidden');
@@ -354,17 +370,17 @@ async function openFile(relativePath) {
     }
 
     if (file.binary) {
-      $('#filePreviewCode').parentElement.classList.add('hidden');
+      $('#filePreviewCode').classList.add('hidden');
       $('#filePreviewNotice').textContent = 'Binary file preview is not supported.';
       $('#filePreviewNotice').classList.remove('hidden');
       return;
     }
 
-    $('#filePreviewCode').parentElement.classList.remove('hidden');
+    $('#filePreviewCode').classList.remove('hidden');
     filePreviewCode.textContent = file.content;
   } catch (error) {
     console.error(error);
-    $('#filePreviewCode').parentElement.classList.add('hidden');
+    $('#filePreviewCode').classList.add('hidden');
     $('#filePreviewNotice').textContent = 'Unable to open this file.';
     $('#filePreviewNotice').classList.remove('hidden');
   }
@@ -565,50 +581,139 @@ async function initRuntimeInfo() {
   }
 }
 
-function newChat() {
+function saveChats() {
+  localStorage.setItem('june.chats', JSON.stringify(state.chats));
+  if (state.activeChatId) localStorage.setItem('june.activeChatId', state.activeChatId);
+  else localStorage.removeItem('june.activeChatId');
+}
+
+function currentChat() {
+  return state.chats.find(chat => chat.id === state.activeChatId) || null;
+}
+
+function renderChatList() {
+  const list = $('#chatList');
+  list.innerHTML = '';
+
+  if (!state.chats.length) {
+    list.innerHTML = '<div class="empty-state compact">No chats yet.</div>';
+    return;
+  }
+
+  const sorted = [...state.chats].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  sorted.forEach(chat => {
+    const item = document.createElement('button');
+    item.className = 'chat-item' + (chat.id === state.activeChatId ? ' active' : '');
+
+    const title = document.createElement('span');
+    title.className = 'chat-title';
+    title.textContent = chat.title || 'New coding session';
+
+    const meta = document.createElement('span');
+    meta.className = 'chat-meta';
+    meta.textContent = chat.messages?.length ? chat.messages.length + ' msg' : 'new';
+
+    item.append(title, meta);
+    item.addEventListener('click', () => selectChat(chat.id));
+    list.appendChild(item);
+  });
+}
+
+function renderChat(chat) {
   showChatSurface();
-  $$('.chat-item').forEach(i => i.classList.remove('active'));
+  const history = $('#chatHistory');
+  history.innerHTML = '';
 
-  const item = document.createElement('button');
-  item.className = 'chat-item active';
-  item.innerHTML = '<span class="chat-title">New coding session</span><span class="chat-meta">now</span>';
-  item.addEventListener('click', () => selectChatItem(item));
-  $('#chatList').prepend(item);
+  if (!chat) {
+    $('.conversation-toolbar h1').textContent = 'New coding session';
+    history.innerHTML = '<article class="message assistant-message welcome-message"><div class="message-role"><span class="agent-orb"></span>June</div><div class="message-body"><p>Select a project, inspect files, or start a coding conversation.</p></div></article>';
+    return;
+  }
 
-  $('#chatHistory').innerHTML = '';
-  $('.conversation-toolbar h1').textContent = 'New coding session';
+  $('.conversation-toolbar h1').textContent = chat.title || 'New coding session';
+
+  if (!chat.messages?.length) {
+    history.innerHTML = '<article class="message assistant-message welcome-message"><div class="message-role"><span class="agent-orb"></span>June</div><div class="message-body"><p>This chat is ready. Agent responses will appear here after the configured pipeline backend is connected.</p></div></article>';
+    return;
+  }
+
+  chat.messages.forEach(message => {
+    const article = document.createElement('article');
+    article.className = 'message ' + (message.role === 'user' ? 'user-message' : 'assistant-message');
+
+    const role = document.createElement('div');
+    role.className = 'message-role';
+    role.textContent = message.role === 'user' ? 'You' : 'June';
+
+    const body = document.createElement('div');
+    body.className = 'message-body';
+    body.textContent = message.content;
+
+    article.append(role, body);
+    history.appendChild(article);
+  });
+
+  history.scrollTop = history.scrollHeight;
+}
+
+function newChat() {
+  const now = Date.now();
+  const chat = {
+    id: 'chat-' + now + '-' + Math.random().toString(36).slice(2, 8),
+    title: 'New coding session',
+    projectPath: state.project?.path || '',
+    messages: [],
+    createdAt: now,
+    updatedAt: now
+  };
+
+  state.chats.push(chat);
+  state.activeChatId = chat.id;
+  saveChats();
+  renderChatList();
+  renderChat(chat);
   composer.focus();
 }
 
-function selectChatItem(item) {
-  showChatSurface();
-  $$('.chat-item').forEach(i => i.classList.remove('active'));
-  item.classList.add('active');
-  $('.conversation-toolbar h1').textContent = $('.chat-title', item).textContent;
+function selectChat(chatId) {
+  state.activeChatId = chatId;
+  saveChats();
+  renderChatList();
+  renderChat(currentChat());
 }
 
 function sendMessage() {
   const text = composer.value.trim();
   if (!text) return;
 
-  const msg = document.createElement('article');
-  msg.className = 'message user-message';
-  msg.innerHTML = '<div class="message-role">You</div><div class="message-body"></div>';
-  $('.message-body', msg).textContent = text;
-  $('#chatHistory').appendChild(msg);
+  let chat = currentChat();
+  if (!chat) {
+    newChat();
+    chat = currentChat();
+  }
+
+  chat.messages.push({
+    role: 'user',
+    content: text,
+    createdAt: Date.now()
+  });
+
+  if (!chat.title || chat.title === 'New coding session') {
+    chat.title = text.length > 48 ? text.slice(0, 45) + '…' : text;
+  }
+
+  chat.updatedAt = Date.now();
+  saveChats();
+  renderChatList();
+  renderChat(chat);
 
   composer.value = '';
   composer.style.height = 'auto';
-  $('#chatHistory').scrollTop = $('#chatHistory').scrollHeight;
 
-  const placeholder = document.createElement('article');
-  placeholder.className = 'message assistant-message';
-  placeholder.innerHTML = '<div class="message-role"><span class="agent-orb"></span>June</div>' +
-    '<div class="message-body"><p>Ready to send this request to <strong>' +
-    (state.settings.backendUrl || 'your configured backend') +
-    '</strong>.</p><div class="agent-step active"><span>↻</span><div><strong>Agent backend not connected yet</strong>' +
-    '<small>The frontend now has local workspace context. Wire the pipeline endpoint to replace this placeholder.</small></div></div></div>';
-  $('#chatHistory').appendChild(placeholder);
+  const notice = document.createElement('article');
+  notice.className = 'message assistant-message backend-notice';
+  notice.innerHTML = '<div class="message-role">June</div><div class="message-body"><div class="agent-step"><span>·</span><div><strong>Message saved locally</strong><small>Agent execution is waiting for the custom pipeline backend integration.</small></div></div></div>';
+  $('#chatHistory').appendChild(notice);
   $('#chatHistory').scrollTop = $('#chatHistory').scrollHeight;
 }
 
@@ -637,8 +742,6 @@ $('#sidebarToggle').addEventListener('click', () => {
   if (window.innerWidth <= 860) $('.sidebar').classList.toggle('mobile-open');
   else document.body.classList.toggle('sidebar-collapsed');
 });
-
-$$('.chat-item').forEach(item => item.addEventListener('click', () => selectChatItem(item)));
 
 $$('.workbench-tab').forEach(tab => tab.addEventListener('click', () => {
   activateWorkbenchTab(tab.dataset.tab);
@@ -793,5 +896,8 @@ async function initProjects() {
 
 applySettings();
 syncSettingsForm();
+renderChatList();
+if (state.activeChatId && currentChat()) renderChat(currentChat());
+else renderChat(null);
 initRuntimeInfo();
 initProjects();
