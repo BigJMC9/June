@@ -55,10 +55,7 @@
       <section class="side-section">
         <div class="section-title-row"><span>Chats</span><button title="Chat options">•••</button></div>
         <div id="chatList" class="chat-list">
-          <button class="chat-item active"><span class="chat-title">Build coding workspace shell</span><span class="chat-meta">2m</span></button>
-          <button class="chat-item"><span class="chat-title">Agent memory architecture</span><span class="chat-meta">1h</span></button>
-          <button class="chat-item"><span class="chat-title">Streaming patch renderer</span><span class="chat-meta">Yesterday</span></button>
-          <button class="chat-item"><span class="chat-title">Model routing strategy</span><span class="chat-meta">Mon</span></button>
+          <div class="empty-state compact">No chats yet.</div>
         </div>
       </section>
 
@@ -81,7 +78,7 @@
           <div class="breadcrumb"><span>June</span><span>/</span><strong>AI Coding Workspace</strong></div>
         </div>
         <div class="header-actions">
-          <button class="chip"><span class="green-dot"></span>Agent online</button>
+          <button id="backendStatusChip" class="chip" title="Configure the agent backend in Settings"><span class="backend-dot"></span><span>Backend not connected</span></button>
           <button class="icon-btn" title="Command palette">⌘</button>
         </div>
       </header>
@@ -90,7 +87,7 @@
         <section class="conversation-panel">
           <div class="conversation-toolbar">
             <div>
-              <h1>Build coding workspace shell</h1>
+              <h1>New coding session</h1>
               <p>Agent session · June</p>
             </div>
             <div class="toolbar-actions">
@@ -116,26 +113,10 @@
           </section>
 
           <div id="chatHistory" class="chat-history">
-            <article class="message user-message">
-              <div class="message-role">You</div>
-              <div class="message-body">Create an Odysseus-inspired frontend for June, but focused on coding workflows. Keep projects, chats, search, agent activity, files and diffs.</div>
-            </article>
-
-            <article class="message assistant-message">
+            <article class="message assistant-message welcome-message">
               <div class="message-role"><span class="agent-orb"></span>June</div>
               <div class="message-body">
-                <p>I’ll use a compact two-level navigation model: a narrow app rail and a project-aware sidebar. The main surface stays conversation-first, with a contextual workbench on the right.</p>
-                <div class="agent-step done"><span>✓</span><div><strong>Workspace structure mapped</strong><small>Navigation, project context, editor tools</small></div></div>
-                <div class="agent-step active"><span>↻</span><div><strong>Building frontend shell</strong><small>Project switcher, chat list, workbench and composer</small></div></div>
-                <div class="code-card">
-                  <div class="code-card-head"><span>src/ui/workspace.ts</span><button>Copy</button></div>
-                  <pre><code>export interface WorkspaceContext {
-  projectId: string;
-  branch: string;
-  activeFile?: string;
-  runId?: string;
-}</code></pre>
-                </div>
+                <p>Select a local project, browse its files, inspect Git changes, or start a coding chat. Agent requests will become live when your pipeline backend is connected.</p>
               </div>
             </article>
           </div>
@@ -187,9 +168,7 @@
           </div>
 
           <div class="workbench-content hidden" data-panel="runs">
-            <div class="run-card success"><div><strong>Frontend checks</strong><small>npm run test</small></div><span>Passed</span></div>
-            <div class="run-card success"><div><strong>Type check</strong><small>npm run typecheck</small></div><span>Passed</span></div>
-            <div class="run-card running"><div><strong>Agent task</strong><small>Build workspace UI</small></div><span>Running</span></div>
+            <div id="runsList" class="empty-state compact">No agent runs yet. Pipeline events will appear here after the backend is connected.</div>
           </div>
         </aside>
       </div>
