@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>June — AI Coding Workspace</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="rail" aria-label="Primary navigation">
+      <div class="brand" title="June">J</div>
+      <button class="rail-btn active" data-view="chat" title="Chat" aria-label="Chat">
+        <svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4V5z"/></svg>
+      </button>
+      <button class="rail-btn" data-view="search" title="Search" aria-label="Search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </button>
+      <button class="rail-btn" data-view="files" title="Files" aria-label="Files">
+        <svg viewBox="0 0 24 24"><path d="M4 4h6l2 3h8v13H4z"/></svg>
+      </button>
+      <div class="rail-spacer"></div>
+      <button class="rail-btn" data-view="settings" title="Settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1A7 7 0 0 0 15 6l-.3-2.6h-4L10.4 6A7 7 0 0 0 8 7.1l-2.4-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.4-1A7 7 0 0 0 10.4 18l.3 2.6h4L15 18a7 7 0 0 0 2.5-1.1l2.4 1 2-3.4-2-1.5a7 7 0 0 0 .1-1z"/></svg>
+      </button>
+    </aside>
+
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <button id="projectButton" class="project-switcher" aria-haspopup="listbox" aria-expanded="false">
+          <span class="project-dot"></span>
+          <span class="project-name">June</span>
+          <svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg>
+        </button>
+        <div id="projectMenu" class="project-menu hidden" role="listbox">
+          <button data-project="June"><span class="project-dot"></span><span>June</span><small>~/Development/June</small></button>
+          <button data-project="JCOS"><span class="project-dot alt"></span><span>JCOS</span><small>~/Development/JCOS</small></button>
+          <button data-project="Jurat"><span class="project-dot warn"></span><span>Jurat</span><small>~/Development/Jurat</small></button>
+          <div class="project-menu-sep"></div>
+          <button id="addProjectBtn" class="muted-action">+ Add project</button>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <button id="newChatBtn" class="quick-action primary-action">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          <span>New chat</span><kbd>Ctrl N</kbd>
+        </button>
+        <button id="searchBtn" class="quick-action">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span>Search</span><kbd>Ctrl K</kbd>
+        </button>
+      </div>
+
+      <section class="side-section">
+        <div class="section-title-row"><span>Chats</span><button title="Chat options">•••</button></div>
+        <div id="chatList" class="chat-list">
+          <button class="chat-item active"><span class="chat-title">Build coding workspace shell</span><span class="chat-meta">2m</span></button>
+          <button class="chat-item"><span class="chat-title">Agent memory architecture</span><span class="chat-meta">1h</span></button>
+          <button class="chat-item"><span class="chat-title">Streaming patch renderer</span><span class="chat-meta">Yesterday</span></button>
+          <button class="chat-item"><span class="chat-title">Model routing strategy</span><span class="chat-meta">Mon</span></button>
+        </div>
+      </section>
+
+      <section class="side-section project-context">
+        <div class="section-title-row"><span>Project</span><button title="Refresh project">↻</button></div>
+        <button class="context-row"><span>◫</span><div><strong>Repository</strong><small>BigJMC9/June</small></div></button>
+        <button class="context-row"><span>⑂</span><div><strong>Branch</strong><small>main</small></div></button>
+        <button class="context-row"><span>●</span><div><strong>Agent</strong><small class="status-ready">Ready</small></div></button>
+      </section>
+
+      <div class="sidebar-footer">
+        <button class="profile-btn"><span class="avatar">J</span><span><strong>Jake</strong><small>Local workspace</small></span><span class="chev">›</span></button>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="workspace-header">
+        <div class="header-left">
+          <button id="sidebarToggle" class="icon-btn" title="Toggle sidebar"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg></button>
+          <div class="breadcrumb"><span>June</span><span>/</span><strong>AI Coding Workspace</strong></div>
+        </div>
+        <div class="header-actions">
+          <button class="chip"><span class="green-dot"></span>Agent online</button>
+          <button class="icon-btn" title="Command palette">⌘</button>
+        </div>
+      </header>
+
+      <div class="content-grid">
+        <section class="conversation-panel">
+          <div class="conversation-toolbar">
+            <div>
+              <h1>Build coding workspace shell</h1>
+              <p>Agent session · June</p>
+            </div>
+            <div class="toolbar-actions">
+              <button class="icon-btn" title="Open terminal">⌁</button>
+              <button class="icon-btn" title="More">•••</button>
+            </div>
+          </div>
+
+          <div id="chatHistory" class="chat-history">
+            <article class="message user-message">
+              <div class="message-role">You</div>
+              <div class="message-body">Create an Odysseus-inspired frontend for June, but focused on coding workflows. Keep projects, chats, search, agent activity, files and diffs.</div>
+            </article>
+
+            <article class="message assistant-message">
+              <div class="message-role"><span class="agent-orb"></span>June</div>
+              <div class="message-body">
+                <p>I’ll use a compact two-level navigation model: a narrow app rail and a project-aware sidebar. The main surface stays conversation-first, with a contextual workbench on the right.</p>
+                <div class="agent-step done"><span>✓</span><div><strong>Workspace structure mapped</strong><small>Navigation, project context, editor tools</small></div></div>
+                <div class="agent-step active"><span>↻</span><div><strong>Building frontend shell</strong><small>Project switcher, chat list, workbench and composer</small></div></div>
+                <div class="code-card">
+                  <div class="code-card-head"><span>src/ui/workspace.ts</span><button>Copy</button></div>
+                  <pre><code>export interface WorkspaceContext {
+  projectId: string;
+  branch: string;
+  activeFile?: string;
+  runId?: string;
+}</code></pre>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="composer-wrap">
+            <div class="composer">
+              <textarea id="composerInput" rows="1" placeholder="Ask June to inspect, edit, run, test, or explain code..."></textarea>
+              <div class="composer-footer">
+                <div class="composer-tools">
+                  <button title="Attach files">＋</button>
+                  <button title="Context">@</button>
+                  <button title="Commands">/</button>
+                </div>
+                <div class="composer-actions">
+                  <button id="modeBtn" class="mode-pill"><span class="mode-dot"></span>Agent <span>⌄</span></button>
+                  <button id="sendBtn" class="send-btn" title="Send"><svg viewBox="0 0 24 24"><path d="m5 12 14-7-4 14-3-5z"/></svg></button>
+                </div>
+              </div>
+            </div>
+            <div class="composer-hint">June can inspect and modify files in the selected project. Review changes before applying.</div>
+          </div>
+        </section>
+
+        <aside class="workbench-panel">
+          <div class="workbench-tabs">
+            <button class="workbench-tab active" data-tab="changes">Changes <span class="badge">3</span></button>
+            <button class="workbench-tab" data-tab="files">Files</button>
+            <button class="workbench-tab" data-tab="runs">Runs</button>
+          </div>
+
+          <div class="workbench-content" data-panel="changes">
+            <div class="workbench-summary">
+              <div><strong>3 files changed</strong><span>+184 −26</span></div>
+              <button class="outline-btn">Review all</button>
+            </div>
+            <div class="file-change"><span class="file-icon">JS</span><div><strong>app.js</strong><small>Frontend orchestration</small></div><span class="diff plus">+92</span><span class="diff minus">−10</span></div>
+            <div class="file-change"><span class="file-icon">CSS</span><div><strong>styles.css</strong><small>Workspace visual system</small></div><span class="diff plus">+71</span><span class="diff minus">−12</span></div>
+            <div class="file-change"><span class="file-icon">HT</span><div><strong>index.html</strong><small>Application shell</small></div><span class="diff plus">+21</span><span class="diff minus">−4</span></div>
+            <div class="diff-preview">
+              <div class="diff-head"><span>app.js</span><span>Modified</span></div>
+              <pre><span class="context"> const project = getCurrentProject();</span>
+<span class="removed">- renderLegacySidebar();</span>
+<span class="added">+ renderProjectWorkspace(project);</span>
+<span class="added">+ bindAgentStream(project.id);</span></pre>
+            </div>
+          </div>
+
+          <div class="workbench-content hidden" data-panel="files">
+            <div class="tree"><button>⌄ <strong>src</strong></button><button class="indent">⌄ <strong>ui</strong></button><button class="indent2 active-file">◇ workspace.ts</button><button class="indent2">◇ projectStore.ts</button><button class="indent">◇ agent.ts</button><button>◇ package.json</button><button>◇ README.md</button></div>
+          </div>
+
+          <div class="workbench-content hidden" data-panel="runs">
+            <div class="run-card success"><div><strong>Frontend checks</strong><small>npm run test</small></div><span>Passed</span></div>
+            <div class="run-card success"><div><strong>Type check</strong><small>npm run typecheck</small></div><span>Passed</span></div>
+            <div class="run-card running"><div><strong>Agent task</strong><small>Build workspace UI</small></div><span>Running</span></div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <div id="commandPalette" class="palette hidden" role="dialog" aria-modal="true">
+    <div class="palette-card">
+      <div class="palette-input-row"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="paletteInput" placeholder="Search chats, files, commands..." /><kbd>Esc</kbd></div>
+      <div class="palette-section-label">Quick actions</div>
+      <button class="palette-item"><span>＋</span><div><strong>New chat</strong><small>Start a new agent session</small></div><kbd>Ctrl N</kbd></button>
+      <button class="palette-item"><span>⌕</span><div><strong>Search project</strong><small>Find files and symbols</small></div><kbd>Ctrl P</kbd></button>
+      <button class="palette-item"><span>⑂</span><div><strong>Switch project</strong><small>Change active workspace</small></div></button>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
