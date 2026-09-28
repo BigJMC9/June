@@ -99,6 +99,22 @@
             </div>
           </div>
 
+          <section id="filePreview" class="file-preview hidden" aria-label="File preview">
+            <div class="file-preview-head">
+              <div>
+                <strong id="filePreviewName">File</strong>
+                <small id="filePreviewPath"></small>
+              </div>
+              <div class="file-preview-actions">
+                <span id="filePreviewMeta"></span>
+                <button id="revealFileBtn" class="outline-btn">Reveal</button>
+                <button id="closeFileBtn" class="icon-btn" title="Close file preview">×</button>
+              </div>
+            </div>
+            <pre id="filePreviewCode"><code></code></pre>
+            <div id="filePreviewNotice" class="file-preview-notice hidden"></div>
+          </section>
+
           <div id="chatHistory" class="chat-history">
             <article class="message user-message">
               <div class="message-role">You</div>
@@ -152,23 +168,22 @@
 
           <div class="workbench-content" data-panel="changes">
             <div class="workbench-summary">
-              <div><strong>3 files changed</strong><span>+184 −26</span></div>
-              <button class="outline-btn">Review all</button>
+              <div><strong id="changesSummary">No project selected</strong><span id="branchSummary">Select a local project</span></div>
+              <button id="refreshChangesBtn" class="outline-btn">Refresh</button>
             </div>
-            <div class="file-change"><span class="file-icon">JS</span><div><strong>app.js</strong><small>Frontend orchestration</small></div><span class="diff plus">+92</span><span class="diff minus">−10</span></div>
-            <div class="file-change"><span class="file-icon">CSS</span><div><strong>styles.css</strong><small>Workspace visual system</small></div><span class="diff plus">+71</span><span class="diff minus">−12</span></div>
-            <div class="file-change"><span class="file-icon">HT</span><div><strong>index.html</strong><small>Application shell</small></div><span class="diff plus">+21</span><span class="diff minus">−4</span></div>
-            <div class="diff-preview">
-              <div class="diff-head"><span>app.js</span><span>Modified</span></div>
-              <pre><span class="context"> const project = getCurrentProject();</span>
-<span class="removed">- renderLegacySidebar();</span>
-<span class="added">+ renderProjectWorkspace(project);</span>
-<span class="added">+ bindAgentStream(project.id);</span></pre>
+            <div id="changesList" class="changes-list">
+              <div class="empty-state compact">Git changes will appear here.</div>
             </div>
           </div>
 
           <div class="workbench-content hidden" data-panel="files">
-            <div class="tree"><button>⌄ <strong>src</strong></button><button class="indent">⌄ <strong>ui</strong></button><button class="indent2 active-file">◇ workspace.ts</button><button class="indent2">◇ projectStore.ts</button><button class="indent">◇ agent.ts</button><button>◇ package.json</button><button>◇ README.md</button></div>
+            <div class="file-browser-toolbar">
+              <button id="refreshFilesBtn" class="outline-btn">Refresh</button>
+              <button id="revealProjectBtn" class="outline-btn">Reveal project</button>
+            </div>
+            <div id="fileTree" class="tree">
+              <div class="empty-state compact">Select or add a local project to browse files.</div>
+            </div>
           </div>
 
           <div class="workbench-content hidden" data-panel="runs">
@@ -183,12 +198,66 @@
 
   <div id="commandPalette" class="palette hidden" role="dialog" aria-modal="true">
     <div class="palette-card">
-      <div class="palette-input-row"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="paletteInput" placeholder="Search chats, files, commands..." /><kbd>Esc</kbd></div>
-      <div class="palette-section-label">Quick actions</div>
-      <button class="palette-item"><span>＋</span><div><strong>New chat</strong><small>Start a new agent session</small></div><kbd>Ctrl N</kbd></button>
-      <button class="palette-item"><span>⌕</span><div><strong>Search project</strong><small>Find files and symbols</small></div><kbd>Ctrl P</kbd></button>
-      <button class="palette-item"><span>⑂</span><div><strong>Switch project</strong><small>Change active workspace</small></div></button>
+      <div class="palette-input-row"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="paletteInput" placeholder="Search project files..." /><kbd>Esc</kbd></div>
+      <div id="paletteResults" class="palette-results">
+        <div class="palette-section-label">Quick actions</div>
+        <button class="palette-item" data-command="new-chat"><span>＋</span><div><strong>New chat</strong><small>Start a new agent session</small></div><kbd>Ctrl N</kbd></button>
+        <button class="palette-item" data-command="add-project"><span>◇</span><div><strong>Add project</strong><small>Open a local folder</small></div></button>
+        <button class="palette-item" data-command="settings"><span>⚙</span><div><strong>Settings</strong><small>Workspace and agent configuration</small></div></button>
+      </div>
     </div>
+  </div>
+
+  <div id="settingsModal" class="settings-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <section class="settings-card">
+      <header class="settings-header">
+        <div><h2 id="settingsTitle">Settings</h2><p>Configure the June workspace and agent frontend.</p></div>
+        <button id="closeSettingsBtn" class="icon-btn" title="Close settings">×</button>
+      </header>
+      <div class="settings-layout">
+        <nav class="settings-nav">
+          <button class="settings-tab active" data-settings-tab="general">General</button>
+          <button class="settings-tab" data-settings-tab="workspace">Workspace</button>
+          <button class="settings-tab" data-settings-tab="agent">Agent & pipeline</button>
+          <button class="settings-tab" data-settings-tab="privacy">Privacy & safety</button>
+          <button class="settings-tab" data-settings-tab="about">About</button>
+        </nav>
+        <div class="settings-content">
+          <section class="settings-page" data-settings-page="general">
+            <h3>Appearance</h3>
+            <label class="setting-row"><span><strong>Theme</strong><small>Choose the desktop colour scheme.</small></span><select id="settingTheme"><option value="dark">Dark</option><option value="midnight">Midnight</option><option value="light">Light</option></select></label>
+            <label class="setting-row"><span><strong>Density</strong><small>Adjust spacing across the workspace.</small></span><select id="settingDensity"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label>
+            <label class="setting-row toggle-row"><span><strong>Remember last project</strong><small>Restore the most recently active project on launch.</small></span><input id="settingRememberProject" type="checkbox" /></label>
+          </section>
+          <section class="settings-page hidden" data-settings-page="workspace">
+            <h3>File browser</h3>
+            <label class="setting-row toggle-row"><span><strong>Show hidden files</strong><small>Include dotfiles such as .env and .github.</small></span><input id="settingShowHidden" type="checkbox" /></label>
+            <label class="setting-row toggle-row"><span><strong>Hide generated folders</strong><small>Hide .git, node_modules, dist, build, target and similar folders.</small></span><input id="settingExcludeCommon" type="checkbox" /></label>
+            <label class="setting-row"><span><strong>Maximum preview size</strong><small>Large files are not loaded into the renderer.</small></span><select id="settingPreviewLimit"><option value="524288">512 KB</option><option value="1048576">1 MB</option><option value="2097152">2 MB</option><option value="4194304">4 MB</option></select></label>
+            <div class="settings-actions"><button id="removeCurrentProjectBtn" class="danger-outline">Remove current project from June</button></div>
+          </section>
+          <section class="settings-page hidden" data-settings-page="agent">
+            <h3>Agent & pipeline</h3>
+            <label class="setting-row"><span><strong>Default mode</strong><small>Initial interaction mode for new chats.</small></span><select id="settingAgentMode"><option value="agent">Agent</option><option value="ask">Ask</option><option value="plan">Plan</option></select></label>
+            <label class="setting-row setting-input"><span><strong>Backend URL</strong><small>HTTP endpoint for your custom June pipeline.</small></span><input id="settingBackendUrl" type="url" placeholder="http://127.0.0.1:8765" /></label>
+            <label class="setting-row setting-input"><span><strong>Default model</strong><small>Model identifier sent to the agent backend.</small></span><input id="settingDefaultModel" type="text" placeholder="qwen3-coder" /></label>
+            <label class="setting-row setting-input"><span><strong>Context budget</strong><small>Preferred maximum model context in tokens.</small></span><input id="settingContextBudget" type="number" min="1024" step="1024" /></label>
+          </section>
+          <section class="settings-page hidden" data-settings-page="privacy">
+            <h3>Privacy & safety</h3>
+            <label class="setting-row toggle-row"><span><strong>Require approval before file writes</strong><small>Agent-generated edits must be reviewed before being applied.</small></span><input id="settingRequireApproval" type="checkbox" /></label>
+            <label class="setting-row toggle-row"><span><strong>Allow terminal tools</strong><small>Permit the pipeline to request terminal execution when backend support is added.</small></span><input id="settingAllowTerminal" type="checkbox" /></label>
+            <label class="setting-row toggle-row"><span><strong>Allow network tools</strong><small>Permit the pipeline to request network/web operations.</small></span><input id="settingAllowNetwork" type="checkbox" /></label>
+            <p class="settings-note">These policies are stored by the frontend and are intended to be sent to the agent backend. June's renderer still has no direct filesystem, shell, or child-process access.</p>
+          </section>
+          <section class="settings-page hidden" data-settings-page="about">
+            <h3>About June</h3>
+            <div class="about-grid"><span>Application</span><strong id="aboutAppVersion">June</strong><span>Electron</span><strong id="aboutElectronVersion">—</strong><span>Platform</span><strong id="aboutPlatform">—</strong></div>
+          </section>
+        </div>
+      </div>
+      <footer class="settings-footer"><span id="settingsSaveState">Settings save automatically.</span><button id="closeSettingsFooterBtn" class="outline-btn">Done</button></footer>
+    </section>
   </div>
 
   <script type="module" src="app.js"></script>
