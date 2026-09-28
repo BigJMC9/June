@@ -40,3 +40,19 @@ The frontend is intentionally framework-light. Replace the placeholder send flow
 - patch approval / apply endpoints
 
 The current UI already separates project context, chat state, file changes, and run status, so those can be wired without changing the layout model.
+
+
+## Desktop integration
+
+The Electron shell currently provides:
+
+- Native application window
+- Single-instance behavior
+- Secure context-isolated preload bridge
+- Native project-folder picker
+- External HTTP/HTTPS links opening in the system browser
+- Windows NSIS packaging
+- macOS DMG/ZIP packaging
+- Linux AppImage packaging
+
+The renderer does not receive direct Node.js, filesystem, shell, or child-process access. Add privileged desktop capabilities as explicit IPC methods as the local agent/backend is implemented.
