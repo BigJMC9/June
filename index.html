@@ -34,7 +34,7 @@
         </button>
         <div id="projectMenu" class="project-menu hidden" role="listbox">
           <div class="project-menu-sep"></div>
-          <button id="addProjectBtn" class="muted-action">+ Add project</button>
+          <button id="addProjectBtn" class="muted-action"><svg class="menu-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add project</span></button>
         </div>
       </div>
 
@@ -50,17 +50,19 @@
       </div>
 
       <section class="side-section">
-        <div class="section-title-row"><span>Chats</span><button title="Chat options">•••</button></div>
+        <div class="section-title-row"><span>Chats</span><button class="section-icon-btn preset-icon-btn" title="Chat options" aria-label="Chat options"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button></div>
         <div id="chatList" class="chat-list">
           <div class="empty-state compact">No chats yet.</div>
         </div>
       </section>
 
       <section class="side-section project-context">
-        <div class="section-title-row"><span>Project</span><button title="Refresh project">↻</button></div>
-        <button class="context-row"><span>◫</span><div><strong>Repository</strong><small>No project</small></div></button>
-        <button class="context-row"><span>⑂</span><div><strong>Branch</strong><small>—</small></div></button>
-        <button class="context-row"><span>●</span><div><strong>Agent</strong><small>Backend not connected</small></div></button>
+        <div class="section-title-row"><span>Project</span><button class="section-icon-btn preset-icon-btn" title="Refresh project" aria-label="Refresh project">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v6h-6M4 18v-6h6"/><path d="M6.5 9a7 7 0 0 1 11.6-2.5L20 8M4 16l1.9 1.5A7 7 0 0 0 17.5 15"/></svg>
+</button></div>
+        <button class="context-row"><span class="context-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h7l2 2h9v11H3z"/><path d="M3 6V5h7l2 2"/></svg></span><div><strong>Repository</strong><small>No project</small></div></button>
+        <button class="context-row"><span class="context-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="4" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="20" r="2"/><path d="M6 6v12M8 8h5a5 5 0 0 0 5-5"/></svg></span><div><strong>Branch</strong><small>—</small></div></button>
+        <button class="context-row"><span class="context-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="13" rx="3"/><path d="M9 6V4h6v2M8 12h.01M16 12h.01M9 16h6"/></svg></span><div><strong>Agent</strong><small>Backend not connected</small></div></button>
       </section>
 
       <div class="sidebar-footer">
@@ -91,8 +93,12 @@
               <p>No local project selected</p>
             </div>
             <div class="toolbar-actions">
-              <button class="icon-btn" title="Open terminal">⌁</button>
-              <button class="icon-btn" title="More">•••</button>
+              <button class="icon-btn preset-icon-btn" title="Open terminal" aria-label="Open terminal">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 5 5-5 5M12 17h8"/></svg>
+              </button>
+              <button class="icon-btn preset-icon-btn" title="More" aria-label="More">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+              </button>
             </div>
           </div>
 
@@ -105,7 +111,9 @@
               <div class="file-preview-actions">
                 <span id="filePreviewMeta"></span>
                 <button id="revealFileBtn" class="outline-btn">Reveal</button>
-                <button id="closeFileBtn" class="icon-btn" title="Close file preview">×</button>
+                <button id="closeFileBtn" class="icon-btn preset-icon-btn" title="Close file preview" aria-label="Close file preview">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+</button>
               </div>
             </div>
             <pre id="filePreviewCode"><code></code></pre>
@@ -126,9 +134,9 @@
               <textarea id="composerInput" rows="1" placeholder="Ask June to inspect, edit, run, test, or explain code..."></textarea>
               <div class="composer-footer">
                 <div class="composer-tools">
-                  <button title="Attach files">＋</button>
-                  <button title="Context">@</button>
-                  <button title="Commands">/</button>
+                  <button class="preset-icon-btn" title="Attach files" aria-label="Attach files"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.4 11.6 12 21a6 6 0 0 1-8.5-8.5l9.4-9.4a4 4 0 0 1 5.7 5.7l-9.5 9.5a2 2 0 1 1-2.8-2.8l8.8-8.8"/></svg></button>
+                  <button class="preset-icon-btn" title="Context" aria-label="Context"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg></button>
+                  <button class="preset-icon-btn" title="Commands" aria-label="Commands"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20 16 4"/></svg></button>
                 </div>
                 <div class="composer-actions">
                   <button id="modeBtn" class="mode-pill"><span class="mode-dot"></span>Agent <span>⌄</span></button>
@@ -191,7 +199,9 @@
     <section class="settings-card">
       <header class="settings-header">
         <div><h2 id="settingsTitle">Settings</h2><p>Configure the June workspace and agent frontend.</p></div>
-        <button id="closeSettingsBtn" class="icon-btn" title="Close settings">×</button>
+        <button id="closeSettingsBtn" class="icon-btn preset-icon-btn settings-close-btn" title="Close settings" aria-label="Close settings">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+</button>
       </header>
       <div class="settings-layout">
         <nav class="settings-nav">
