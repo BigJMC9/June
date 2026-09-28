@@ -1,3 +1,4 @@
+import { installExtras } from './extras.js';
 /* June renderer. Native capabilities remain behind the existing preload bridge. */
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -30,7 +31,17 @@ const paths = {
   more: '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
   edit: '<path d="m15 4 5 5-11 11H4v-5zm-2 2 5 5"/>',
   trash: '<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/>',
-  check: '<path d="m5 12 4 4L19 6"/>'
+  check: '<path d="m5 12 4 4L19 6"/>',
+  brain: '<path d="M12 18V5a3 3 0 0 0-6 0 4 4 0 0 0-3 6 4 4 0 0 0 1 7 4 4 0 0 0 8 0ZM12 5a3 3 0 0 1 6 0 4 4 0 0 1 3 6 4 4 0 0 1-1 7 4 4 0 0 1-8 0"/>',
+  bolt: '<path d="m13 2-9 12h7l-1 8 10-12h-7z"/>',
+  book: '<path d="M12 6v15M3 3h5a4 4 0 0 1 4 3 4 4 0 0 1 4-3h5v16h-5a4 4 0 0 0-4 2 4 4 0 0 0-4-2H3z"/>',
+  shield: '<path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6zM9 12l2 2 4-4"/>',
+  copy: '<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',
+  download: '<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>',
+  upload: '<path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/>',
+  compress: '<path d="M4 6h16M7 12h10M10 18h4"/>',
+  cpu: '<rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 1v4m6-4v4M9 19v4m6-4v4M1 9h4m-4 6h4M19 9h4m-4 6h4"/>',
+  play: '<path d="m7 3 14 9-14 9z"/>' 
 };
 function icon(name) {
   const node = document.createElement('span');
@@ -70,6 +81,7 @@ function validSetting(key, value) {
   if (typeof defaults[key] === 'boolean') return typeof value === 'boolean';
   if (key === 'contextBudget') return Number.isInteger(value) && value >= 1024 && value <= 2097152;
   if (key === 'backendUrl') {
+    if (typeof value !== 'string') return false;
     if (!value) return true;
     try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password && !url.search && !url.hash; } catch { return false; }
   }
@@ -79,7 +91,7 @@ const savedSettings = readJSON('june.settings', {});
 const settings = { ...defaults };
 for (const key of Object.keys(defaults)) if (validSetting(key, savedSettings?.[key])) settings[key] = savedSettings[key];
 const savedChats = readJSON('june.chats', []);
-const chats = (Array.isArray(savedChats) ? savedChats : []).filter(chat => chat && typeof chat.id === 'string').map(chat => ({
+const chats = (Array.isArray(savedChats) ? savedChats : []).filter(chat => chat && !chat.temporary && typeof chat.id === 'string').map(chat => ({
   ...chat, title: typeof chat.title === 'string' ? chat.title : 'Untitled chat',
   projectPath: typeof chat.projectPath === 'string' ? chat.projectPath : '',
   messages: (Array.isArray(chat.messages) ? chat.messages : []).filter(message => message && typeof message.content === 'string' && ['user', 'assistant', 'system'].includes(message.role))
@@ -87,15 +99,18 @@ const chats = (Array.isArray(savedChats) ? savedChats : []).filter(chat => chat 
 const loadedDrafts = readJSON('june.drafts', {});
 const state = {
   settings, chats, projects: [], project: null, activeChatId: '', file: '', inspector: '',
+  temporary: null, temporaryDraft: '', temporaryReturnId: '',
   drafts: loadedDrafts && typeof loadedDrafts === 'object' && !Array.isArray(loadedDrafts) ? loadedDrafts : {},
   epoch: 0, fileSeq: 0, treeSeq: 0, gitSeq: 0, searchSeq: 0, healthSeq: 0,
   expanded: new Set(), searchIndex: -1, searchActions: [],
   collapsed: readJSON('june.sidebarCollapsed', 0) === 1,
   chatsExpanded: readJSON('june.chatsExpanded', true) !== false
 };
+let extras;
 const composer = $('#composerInput');
+const isTemporary = () => Boolean(state.temporary);
 const rootPath = () => state.project?.path || '';
-const currentChat = () => state.chats.find(chat => chat.id === state.activeChatId && chat.projectPath === rootPath());
+const currentChat = () => state.temporary || state.chats.find(chat => chat.id === state.activeChatId && chat.projectPath === rootPath());
 const projectChats = () => state.chats.filter(chat => chat.projectPath === rootPath()).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 const draftKey = () => state.activeChatId || `new:${rootPath()}`;
 const basename = path => String(path).split(/[\\/]/).filter(Boolean).pop() || path;
@@ -106,6 +121,7 @@ async function native(name, ...args) {
   return desktop[name](...args);
 }
 function saveDraft() {
+  if (isTemporary()) { state.temporaryDraft = composer.value; return true; }
   state.drafts[draftKey()] = composer.value;
   return store('june.drafts', state.drafts);
 }
@@ -114,8 +130,8 @@ function sizeComposer() {
   composer.style.height = Math.min(180, Math.max(82, composer.scrollHeight)) + 'px';
   $('#sendBtn').disabled = !composer.value.trim();
 }
-function restoreDraft() { composer.value = typeof state.drafts[draftKey()] === 'string' ? state.drafts[draftKey()] : ''; sizeComposer(); }
-function saveChats() { return store('june.chats', state.chats); }
+function restoreDraft() { composer.value = isTemporary() ? state.temporaryDraft : (typeof state.drafts[draftKey()] === 'string' ? state.drafts[draftKey()] : ''); sizeComposer(); }
+function saveChats() { return store('june.chats', state.chats.filter(chat => !chat.temporary)); }
 function hideProjectMenu(returnFocus = false) {
   $('#projectMenu').hidden = true;
   $('#projectButton').setAttribute('aria-expanded', 'false');
@@ -172,9 +188,9 @@ function renderChats() {
 function renderConversation() {
   const chat = currentChat();
   const empty = !chat?.messages.length;
-  $('#chatTitle').textContent = chat?.title || 'New chat';
-  document.title = chat ? `${chat.title} - June` : 'June';
-  $('#chatOptionsBtn').hidden = !chat;
+  $('#chatTitle').textContent = chat?.title || 'June chat';
+  document.title = isTemporary() ? 'Temporary chat - June' : chat ? `${chat.title} - June` : 'June';
+  $('#chatOptionsBtn').hidden = false;
   $('#conversation').dataset.empty = String(empty);
   $('#welcome').hidden = !empty;
   $('#chatHistory').hidden = empty;
@@ -187,10 +203,11 @@ function renderConversation() {
   for (const message of chat?.messages || []) {
     const article = el('article', 'message');
     article.append(el('div', 'message-role', message.role === 'user' ? 'You' : message.role === 'assistant' ? 'June' : 'Note'), el('div', 'message-body', message.content));
-    if (message.role === 'user') article.append(el('div', 'message-footnote', 'Saved on this device'));
+    if (message.role === 'user') article.append(el('div', 'message-footnote', isTemporary() ? 'Temporary - not saved' : 'Saved on this device'));
     history.append(article);
   }
   history.scrollTop = history.scrollHeight;
+  extras?.update();
 }
 function showChat() {
   state.fileSeq++;
@@ -200,15 +217,16 @@ function showChat() {
   $$('.tree-row').forEach(row => row.removeAttribute('aria-current'));
   requestAnimationFrame(sizeComposer);
 }
-function selectChat(id = '') {
-  saveDraft();
+async function selectChat(id = '') {
+  if (isTemporary()) { if (!await extras.discardTemporary()) return; } else saveDraft();
   state.activeChatId = state.chats.some(chat => chat.id === id && chat.projectPath === rootPath()) ? id : '';
   store('june.activeChatId', state.activeChatId);
   showChat(); renderChats(); renderConversation(); restoreDraft(); closeMobileSidebar();
   composer.focus();
 }
-function switchProject(project, preferredChat = '') {
-  saveDraft(); hideProjectMenu();
+async function switchProject(project, preferredChat = '') {
+  if (isTemporary()) { if (!await extras.discardTemporary()) return; } else saveDraft();
+  hideProjectMenu();
   state.epoch++; state.searchSeq++; state.treeSeq++; state.gitSeq++;
   state.project = project;
   state.expanded.clear();
@@ -397,7 +415,7 @@ async function renderChanges() {
   } catch (error) { if (fresh()) { $('#branchSummary').textContent = 'Git unavailable'; emptyState(list, error.message); } }
 }
 function showDialog(id) {
-  hideProjectMenu(); closeMobileSidebar();
+  hideProjectMenu(); closeMobileSidebar(); extras?.closeMenu();
   const dialog = $('#' + id);
   if (!dialog.open) dialog.showModal();
 }
@@ -453,9 +471,14 @@ function ask(title, message, initial, confirmLabel) {
 async function editChat(remove) {
   const chat = currentChat();
   if (!chat) return;
-  $('#chatOptions').close();
+  extras?.closeMenu();
   const answer = await ask(remove ? 'Delete chat?' : 'Rename chat', remove ? 'This removes this conversation from June on this device. Project files are not affected.' : 'Give this conversation a useful name.', remove ? undefined : chat.title, remove ? 'Delete chat' : 'Save name');
   if (!answer) return;
+  if (isTemporary()) {
+    if (remove) { state.temporary = null; state.temporaryDraft = ''; composer.value = ''; }
+    else state.temporary.title = answer;
+    renderChats(); renderConversation(); restoreDraft(); return;
+  }
   const previous = state.chats;
   state.chats = remove ? state.chats.filter(item => item.id !== chat.id) : state.chats.map(item => item.id === chat.id ? { ...item, title: answer } : item);
   if (!saveChats()) { state.chats = previous; return; }
@@ -479,6 +502,9 @@ function paletteCommands(query = '') {
     ['folder-plus', 'Open project', 'Choose a local folder', addProject],
     ['folder', 'Browse files', 'Open the file browser', () => openInspector('files')],
     ['branch', 'View changes', 'Inspect Git status', () => openInspector('changes')],
+    ['shield', 'Temporary chat', 'Not saved to history; no memories or skills', () => extras.startTemporary()],
+    ['brain', 'Memories and skills', 'Manage reusable knowledge', () => extras.openKnowledge('memories')],
+    ['book', 'Cookbook', 'Local models and saved setups', () => extras.openCookbook()],
     ['settings', 'Settings', 'Appearance, workspace, and backend', () => openSettings()]
   ].filter(item => item[1].toLowerCase().includes(query));
 }
@@ -534,6 +560,10 @@ function saveMessage(event) {
   const message = { role: 'user', content, createdAt: now };
   const previousUpdatedAt = chat.updatedAt;
   chat.messages.push(message); chat.updatedAt = now;
+  if (isTemporary()) {
+    state.temporaryDraft = ''; composer.value = '';
+    renderChats(); renderConversation(); sizeComposer(); composer.focus(); return;
+  }
   if (isNew) state.chats.push(chat);
   if (!saveChats()) { chat.messages.pop(); chat.updatedAt = previousUpdatedAt; if (isNew) state.chats = state.chats.filter(item => item !== chat); return; }
   state.activeChatId = chat.id;
@@ -550,7 +580,7 @@ const actions = {
   'reveal-project': () => rootPath() && native('revealPath', rootPath(), ''),
   'reveal-file': () => rootPath() && state.file && native('revealPath', rootPath(), state.file),
   'remove-project': removeProject, 'test-backend': testBackend,
-  'chat-options': () => currentChat() && showDialog('chatOptions'),
+  'chat-options': () => extras.toggleMenu(),
   'rename-chat': () => editChat(false), 'delete-chat': () => editChat(true)
 };
 document.addEventListener('click', async event => {
@@ -621,7 +651,7 @@ $$('dialog').forEach(dialog => dialog.addEventListener('click', event => {
   if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
 }));
 document.addEventListener('keydown', event => {
-  if ($('dialog[open]')) return; // Native dialog handles Esc and traps focus.
+  if ($('dialog[open]') || extras?.menuOpen()) return; // Dialogs and popover handle Esc and focus.
   if (event.key === 'Escape') {
     if (!$('#projectMenu').hidden) hideProjectMenu(true);
     else if ($('#appShell').classList.contains('mobile-nav')) { closeMobileSidebar(); $('#sidebarToggle').focus(); }
@@ -630,6 +660,7 @@ document.addEventListener('keydown', event => {
     return;
   }
   if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+  if (event.shiftKey && event.key.toLowerCase() === 'n') { event.preventDefault(); void extras.startTemporary(); return; }
   const map = { n: () => selectChat(), k: openSearch, p: openSearch, b: toggleSidebar, ',': () => openSettings() };
   const action = map[event.key.toLowerCase()];
   if (action) { event.preventDefault(); action(); }
@@ -660,7 +691,12 @@ async function init() {
     state.projects = (await native('listProjects')).filter(project => project && typeof project.path === 'string' && typeof project.name === 'string');
     const remembered = state.settings.rememberProject ? localStorage.getItem('june.lastProjectPath') : '';
     const id = localStorage.getItem('june.activeChatId') || '';
-    switchProject(state.projects.find(project => project.path === remembered) || null, id);
+    await switchProject(state.projects.find(project => project.path === remembered) || null, id);
   } catch (error) { renderProjectMenu(); toast(`Could not load projects: ${error.message}`); }
 }
+extras = installExtras({ state, $, $$, el, icon, native, desktop, toast, readJSON, store,
+  currentChat, rootPath, composer, saveDraft, restoreDraft, saveChats, sizeComposer, showChat,
+  renderChats, renderConversation, selectChat, openSettings, ask, showDialog, syncSettings, resetHealth,
+  isTemporary, sync: () => { renderChats(); renderConversation(); restoreDraft(); }
+});
 void init();

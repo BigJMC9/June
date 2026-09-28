@@ -1,5 +1,4 @@
 const { contextBridge, ipcRenderer } = require('electron');
-
 const desktopApi = Object.freeze({
   isDesktop: true,
   getRuntimeInfo: () => ipcRenderer.invoke('june:get-runtime-info'),
@@ -10,16 +9,19 @@ const desktopApi = Object.freeze({
   listProjects: () => ipcRenderer.invoke('june:list-projects'),
   selectProjectDirectory: () => ipcRenderer.invoke('june:select-project-directory'),
   removeProject: projectPath => ipcRenderer.invoke('june:remove-project', projectPath),
-  listDirectory: (projectPath, relativePath = '', options = {}) =>
-    ipcRenderer.invoke('june:list-directory', projectPath, relativePath, options),
-  readTextFile: (projectPath, relativePath, maxBytes) =>
-    ipcRenderer.invoke('june:read-text-file', projectPath, relativePath, maxBytes),
-  searchFiles: (projectPath, query, options = {}) =>
-    ipcRenderer.invoke('june:search-files', projectPath, query, options),
+  listDirectory: (projectPath, relativePath = '', options = {}) => ipcRenderer.invoke('june:list-directory', projectPath, relativePath, options),
+  readTextFile: (projectPath, relativePath, maxBytes) => ipcRenderer.invoke('june:read-text-file', projectPath, relativePath, maxBytes),
+  searchFiles: (projectPath, query, options = {}) => ipcRenderer.invoke('june:search-files', projectPath, query, options),
   getGitStatus: projectPath => ipcRenderer.invoke('june:get-git-status', projectPath),
   checkBackend: backendUrl => ipcRenderer.invoke('june:check-backend', backendUrl),
-  revealPath: (projectPath, relativePath = '') =>
-    ipcRenderer.invoke('june:reveal-path', projectPath, relativePath)
+  revealPath: (projectPath, relativePath = '') => ipcRenderer.invoke('june:reveal-path', projectPath, relativePath),
+  copyText: text => ipcRenderer.invoke('june:copy-text', text),
+  saveArtifact: payload => ipcRenderer.invoke('june:save-artifact', payload),
+  getCookbookInfo: () => ipcRenderer.invoke('june:cookbook-info'),
+  chooseModelFolder: () => ipcRenderer.invoke('june:choose-model-folder'),
+  scanModels: () => ipcRenderer.invoke('june:scan-models'),
+  inspectEnvironment: () => ipcRenderer.invoke('june:inspect-environment'),
+  fetchSkill: url => ipcRenderer.invoke('june:fetch-skill', url),
+  openModelPage: repo => ipcRenderer.invoke('june:open-model-page', repo)
 });
-
 contextBridge.exposeInMainWorld('juneDesktop', desktopApi);

@@ -1,0 +1,194 @@
+
+> june@0.1.0 test
+> node --test tests/workspace-data.test.mjs tests/desktop-features.test.cjs
+
+TAP version 13
+# Subtest: Containment rejects sibling paths without rejecting dot names
+ok 1 - Containment rejects sibling paths without rejecting dot names
+  ---
+  duration_ms: 2.287623
+  type: 'test'
+  ...
+# Subtest: Scan finds real GGUF and HF cache metadata
+ok 2 - Scan finds real GGUF and HF cache metadata
+  ---
+  duration_ms: 67.266971
+  type: 'test'
+  ...
+# Subtest: Scan rejects out-of-root links and ignores directory loops
+ok 3 - Scan rejects out-of-root links and ignores directory loops
+  ---
+  duration_ms: 6.462479
+  type: 'test'
+  ...
+# Subtest: Scan reports result cap
+ok 4 - Scan reports result cap
+  ---
+  duration_ms: 10.209322
+  type: 'test'
+  ...
+# Subtest: GitHub skill URLs are allowlisted
+ok 5 - GitHub skill URLs are allowlisted
+  ---
+  duration_ms: 3.272401
+  type: 'test'
+  ...
+# Subtest: Skill fetch bounds stream bytes and rejects HTML
+ok 6 - Skill fetch bounds stream bytes and rejects HTML
+  ---
+  duration_ms: 67.932031
+  type: 'test'
+  ...
+# Subtest: Environment invokes only fixed version commands without shell
+ok 7 - Environment invokes only fixed version commands without shell
+  ---
+  duration_ms: 5.080629
+  type: 'test'
+  ...
+# Subtest: PDF HTML escapes scripts and uses network-blocking CSP
+ok 8 - PDF HTML escapes scripts and uses network-blocking CSP
+  ---
+  duration_ms: 0.99086
+  type: 'test'
+  ...
+# Subtest: New IPC rejects foreign windows and subframes
+ok 9 - New IPC rejects foreign windows and subframes
+  ---
+  duration_ms: 1.326849
+  type: 'test'
+  ...
+# Subtest: Export honors cancel and the user-selected path
+ok 10 - Export honors cancel and the user-selected path
+  ---
+  duration_ms: 16.484528
+  type: 'test'
+  ...
+# Subtest: Knowledge normalizer handles corrupt entries
+ok 11 - Knowledge normalizer handles corrupt entries
+  ---
+  duration_ms: 2.213648
+  type: 'test'
+  ...
+# Subtest: Knowledge defaults have a bounded skill budget
+ok 12 - Knowledge defaults have a bounded skill budget
+  ---
+  duration_ms: 0.410503
+  type: 'test'
+  ...
+# Subtest: Project scope is isolated
+ok 13 - Project scope is isolated
+  ---
+  duration_ms: 1.748211
+  type: 'test'
+  ...
+# Subtest: Only approved skills up to budget are included
+ok 14 - Only approved skills up to budget are included
+  ---
+  duration_ms: 0.296644
+  type: 'test'
+  ...
+# Subtest: Zero skill budget disables skill inclusion
+ok 15 - Zero skill budget disables skill inclusion
+  ---
+  duration_ms: 0.865107
+  type: 'test'
+  ...
+# Subtest: Global disable switches exclude knowledge
+ok 16 - Global disable switches exclude knowledge
+  ---
+  duration_ms: 0.312498
+  type: 'test'
+  ...
+# Subtest: Temporary contexts contain no saved knowledge or retention
+ok 17 - Temporary contexts contain no saved knowledge or retention
+  ---
+  duration_ms: 0.619459
+  type: 'test'
+  ...
+# Subtest: Compaction changes request context, not chat history
+ok 18 - Compaction changes request context, not chat history
+  ---
+  duration_ms: 0.718412
+  type: 'test'
+  ...
+# Subtest: Invalid compaction cursor cannot omit history
+ok 19 - Invalid compaction cursor cannot omit history
+  ---
+  duration_ms: 0.701584
+  type: 'test'
+  ...
+# Subtest: Transcripts preserve literal user HTML
+ok 20 - Transcripts preserve literal user HTML
+  ---
+  duration_ms: 0.870249
+  type: 'test'
+  ...
+# Subtest: Imports cannot smuggle IDs, scope or approval
+ok 21 - Imports cannot smuggle IDs, scope or approval
+  ---
+  duration_ms: 1.058956
+  type: 'test'
+  ...
+# Subtest: Malformed and oversized imports fail
+ok 22 - Malformed and oversized imports fail
+  ---
+  duration_ms: 0.799427
+  type: 'test'
+  ...
+# Subtest: Text import creates candidate paragraphs
+ok 23 - Text import creates candidate paragraphs
+  ---
+  duration_ms: 0.349148
+  type: 'test'
+  ...
+# Subtest: Skill file parses text without evaluation
+ok 24 - Skill file parses text without evaluation
+  ---
+  duration_ms: 0.584613
+  type: 'test'
+  ...
+# Subtest: Duplicates respect category and scope
+ok 25 - Duplicates respect category and scope
+  ---
+  duration_ms: 0.365507
+  type: 'test'
+  ...
+# Subtest: Endpoint rejects credentials, file URLs and secret query
+ok 26 - Endpoint rejects credentials, file URLs and secret query
+  ---
+  duration_ms: 0.51136
+  type: 'test'
+  ...
+# Subtest: Cookbook setup defaults remain valid
+ok 27 - Cookbook setup defaults remain valid
+  ---
+  duration_ms: 3.462966
+  type: 'test'
+  ...
+# Subtest: Shell quoting escapes single quotes and rejects newline
+ok 28 - Shell quoting escapes single quotes and rejects newline
+  ---
+  duration_ms: 0.328056
+  type: 'test'
+  ...
+# Subtest: Launch command binds only localhost
+ok 29 - Launch command binds only localhost
+  ---
+  duration_ms: 0.312208
+  type: 'test'
+  ...
+# Subtest: Download helper validates names and rejects traversal
+ok 30 - Download helper validates names and rejects traversal
+  ---
+  duration_ms: 0.399434
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 471.149465

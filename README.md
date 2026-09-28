@@ -1,105 +1,55 @@
-# June - simplified workspace
+# June - workspace tools
 
-A conversation-first redesign of the existing June Electron frontend. One
-project-aware sidebar, a focused composer, and Files/Changes when needed.
+Source update for BigJMC9/June main at 7d79ac1db9eaa16f56e699daf42533202a49bb0c.
 
-## Apply this update
+Close June and copy these files into your existing checkout, merging directories.
+Keep the existing electron/main.cjs, package-lock.json and LICENSE. This is not a
+standalone installer. The package entry point now loads electron/start.cjs, which
+registers additional APIs and then loads the existing main process. Start with
+npm run dev; no new npm dependencies were added. Restart Electron fully after
+updating, because the preload and entry point also change.
 
-This ZIP is a renderer source update, not a standalone app or installer.
-It targets BigJMC9/June's existing `desktop-electron` branch, starting from
-`c27d5b9efa7726960a4a3c3f0491f58e120bfc7c`.
+## Features
+- June chat title dropdown: rename, copy, Markdown/PDF export, save Markdown to
+  Documents, reviewed context summary, chat mode/context settings, and deletion.
+- Memories & skills: manual creation/editing/deletion, global/project scope,
+  enable switches, search/filter/sort, explicit skill approval, reviewed imports
+  from TXT/Markdown/JSON/SKILL.md or a public GitHub Markdown URL, JSON export.
+- Cookbook: local GGUF/Hugging Face cache discovery, saved model setups, quoted
+  launch/download commands, CPU/RAM and fixed executable version checks.
+- Temporary chats: in-memory messages and drafts, excluded from saved history
+  and knowledge, discard confirmation, normal draft restoration, and explicit
+  warning before copying/exporting outside the temporary session.
 
-1. Fully close June. Back up or commit any local frontend edits.
-2. Extract this ZIP into a temporary folder.
-3. Copy `index.html`, `styles.css`, and `app.js` into your existing June project
-   root, replacing those three files. Keep your existing `electron/`,
-   `package.json`, lockfile, LICENSE, and other project files.
-4. In the existing June project, run `npm run dev`.
+## Honest boundaries
+This remains a frontend for your custom pipeline. It does not send model
+requests, execute agent tools, apply patches, extract memories automatically,
+or assign confidence scores. Context compaction uses a summary you write/review.
+Cookbook prepares commands; it does not launch servers, install software, or
+download model files. Selecting a setup changes model preferences only.
 
-No new npm dependencies are needed. The included test and documentation files
-are optional. The final GitHub branch update was blocked; `git pull` alone will
-not install this redesign.
+Temporary mode prevents June from persisting conversation/draft content; it is
+not anonymity, secure deletion, protection from OS swap/crash dumps, or a promise
+about future backend/provider retention. Explicit exports/copies persist outside
+June. Global settings and manually chosen model folders can still be saved.
+Knowledge and setups are stored locally without encryption; do not enter secrets.
 
-## Layout
+New native APIs validate the sender, restrict network imports to public GitHub
+Markdown and use native save/folder dialogs. No raw Node, IPC or shell is exposed
+to the renderer. Model scans have depth/entry/result limits and report partial
+results. Imported skill code is never executed and approvals are not trusted.
+The original project host is preserved; this update is not a full security audit.
 
-The sidebar contains the project selector, New chat, Search, collapsible Chats,
-and Settings. Ctrl/Cmd+B collapses the whole sidebar. A new conversation has a
-centered welcome and composer; after saving a message, the composer sits at the
-bottom. Files and Changes open an optional workbench, closed by default. On
-narrow screens it overlays the conversation instead of compressing it.
+Shortcuts: Ctrl/Cmd+N normal chat; Shift+N temporary chat; K/P search; B sidebar;
+comma settings. Enter adds a message and Shift+Enter inserts a newline.
 
-The duplicate project metadata, second session header, inactive attachment and
-terminal controls, and unused Runs panel have been removed. The title bar keeps
-only minimize, maximize/restore, and close. All controls use consistent local
-SVG geometry, with no icon fonts or external asset requests.
+## Data and integration
+New storage keys: june.knowledge.v1 and june.cookbook.v1. The selected model folder
+is stored in Electron user data. Existing chats, drafts and settings are kept.
+workspace-data.mjs exports buildContext for later integration: reviewed summary,
+recent messages, eligible scoped knowledge, and explicit temporary/retention
+flags. It performs no networking. The renderer's extras controller exposes a
+requestContext method but never submits it automatically.
 
-## Functional behavior
-
-- Existing preload methods provide project selection, lazy directory browsing,
-  read-only text previews, file size/binary/error notices, file search, Git
-  working-tree status, and operating-system reveal.
-- Chats are scoped to the current project. Search includes this project's chats,
-  file names/paths, and commands. Directory results expand their location.
-- Chat rename and confirmed deletion work. Drafts survive chat and project
-  switching, using the existing app's local storage alongside a new draft key.
-- Existing `june.chats` and `june.settings` data is retained. Removing a project
-  does not delete its files or saved chats; reopening the folder restores chats.
-- Async responses are checked against the current project/request, so a slow
-  older result cannot replace a newer search or file preview.
-- Native dialogs retain keyboard focus and support Escape. Settings tabs support
-  arrow keys. Collapsed navigation is not keyboard-focusable.
-
-Shortcuts: Ctrl/Cmd+N new chat; K or P search; B sidebar; comma settings.
-Enter saves a local message; Shift+Enter adds a line. IME composition is not
-submitted prematurely.
-
-## Settings and backend boundary
-
-Settings is organized into General, Workspace, and Backend. The existing model,
-mode, context budget, and tool-policy preferences remain under Pipeline
-preferences. They are saved for future integration, not enforced permissions.
-
-Messages are saved locally; there is no model response, agent execution, terminal
-execution, or patch application in this update. A successful GET /health test
-means the server is reachable, not that agent functionality is enabled.
-
-The Electron main process, preload APIs, and packaging are unchanged. This UI
-update is not a security audit of the existing filesystem/agent host.
-Project content is rendered as text. The renderer CSP disallows direct network
-connections; future streaming requires a validated bridge or a deliberate CSP
-change.
-
-## Validation
-
-`node --check app.js` passed. The included Playwright suite passed 60 renderer
-checks in system Chromium, using the documented offline mode with simulated
-Electron methods and in-memory test storage. Screenshots are actual renders of
-the included UI; project/file fixtures are simulated.
-
-Native Windows/Electron behavior, OS folder dialogs, actual filesystem access,
-CSP/module loading, and real storage persistence were not tested in that mode.
-Those still require a local desktop smoke test after applying the update.
-
-To run the optional tests normally:
-
-```sh
-python -m pip install playwright
-python -m playwright install chromium
-python tests/ui_smoke.py
-```
-
-For an environment that does not allow localhost navigation:
-
-```sh
-JUNE_OFFLINE_TEST=1 python tests/ui_smoke.py
-```
-
-PowerShell equivalent:
-
-```powershell
-$env:JUNE_OFFLINE_TEST = "1"
-python tests/ui_smoke.py
-```
-
-Test output goes to `test-results/`. The included `validation/results.json`
-records the completed run. No fonts or third-party asset packages are bundled.
+See INSTALL.md for application instructions and VALIDATION.md for exact test
+scope. Run npm test for the dependency-free Node suite.

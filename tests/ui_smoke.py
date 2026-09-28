@@ -14,6 +14,7 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from playwright.sync_api import sync_playwright
+from renderer_loader import renderer_bundle
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / 'test-results'
@@ -82,8 +83,8 @@ def load_page(page, saved=None):
     html = re.sub(r'<link rel="stylesheet"[^>]*>', '', html)
     html = re.sub(r'<script[^>]*>.*?</script>', '', html, flags=re.S)
     page.set_content(html)
-    page.add_style_tag(content=(ROOT/'styles.css').read_text())
-    page.evaluate('() => {'+(ROOT/'app.js').read_text()+'}')
+    page.add_style_tag(content=(ROOT/'styles.css').read_text()+'\n'+(ROOT/'extras.css').read_text())
+    page.evaluate('() => {'+renderer_bundle(ROOT)+'}')
 
 def reload_page(page):
     if not OFFLINE: page.reload()

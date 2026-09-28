@@ -6,6 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>June</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="extras.css">
 </head>
 <body>
   <header class="titlebar" aria-label="Application window">
@@ -30,6 +31,7 @@
         <button id="newChatBtn" class="nav-button" data-action="new-chat"><span data-icon="plus"></span><span>New chat</span><kbd data-shortcut="N">Ctrl N</kbd></button>
         <button id="searchBtn" class="nav-button" data-action="search"><span data-icon="search"></span><span>Search</span><kbd data-shortcut="K">Ctrl K</kbd></button>
       </nav>
+      <nav class="resource-nav" aria-label="Workspace resources"><button id="knowledgeButton" class="nav-button" data-extra="memories"><span data-icon="brain"></span><span>Memories &amp; skills</span></button><button id="cookbookButton" class="nav-button" data-extra="cookbook"><span data-icon="book"></span><span>Cookbook</span></button></nav>
       <section class="chat-section">
         <button id="chatsToggle" class="section-toggle" aria-expanded="true" aria-controls="chatList"><span>Chats</span><span data-icon="chevron-down"></span></button>
         <div id="chatList" class="chat-list"></div>
@@ -39,19 +41,19 @@
     <button id="sidebarScrim" class="scrim" aria-label="Close sidebar" hidden></button>
     <main class="workspace">
       <header class="workspace-header">
-        <div class="workspace-heading"><button id="sidebarToggle" class="icon-button reopen-sidebar" data-action="sidebar" aria-label="Open sidebar" title="Open sidebar (Ctrl/Cmd+B)" aria-controls="sidebar" aria-expanded="true"><span data-icon="panel"></span></button><h1 id="chatTitle">New chat</h1><button id="chatOptionsBtn" class="icon-button" data-action="chat-options" aria-label="Chat options" title="Rename or delete chat" hidden><span data-icon="more"></span></button></div>
-        <nav class="workspace-tools" aria-label="Project tools"><button id="filesButton" class="tool-button" data-action="files" aria-pressed="false" aria-controls="inspector"><span data-icon="folder"></span><span>Files</span></button><button id="changesButton" class="tool-button" data-action="changes" aria-pressed="false" aria-controls="inspector"><span data-icon="branch"></span><span>Changes</span></button></nav>
+        <div class="workspace-heading"><button id="sidebarToggle" class="icon-button reopen-sidebar" data-action="sidebar" aria-label="Open sidebar" title="Open sidebar (Ctrl/Cmd+B)" aria-controls="sidebar" aria-expanded="true"><span data-icon="panel"></span></button><h1 class="chat-heading"><button id="chatOptionsBtn" class="chat-title-button" data-action="chat-options" aria-label="Chat options" aria-haspopup="menu" aria-expanded="false" aria-controls="chatMenu"><span id="chatTitle">June chat</span><span data-icon="chevron-down"></span></button></h1><button id="temporaryBadge" class="temporary-badge" data-extra="end-temporary" hidden><span data-icon="shield"></span>Temporary</button></div>
+        <nav class="workspace-tools" aria-label="Project tools"><button id="temporaryButton" class="tool-button" data-extra="temporary" aria-label="Start temporary chat" title="Temporary chat (Ctrl/Cmd+Shift+N)" aria-pressed="false"><span data-icon="shield"></span><span class="temporary-label">Temporary</span></button><button id="filesButton" class="tool-button" data-action="files" aria-pressed="false" aria-controls="inspector"><span data-icon="folder"></span><span>Files</span></button><button id="changesButton" class="tool-button" data-action="changes" aria-pressed="false" aria-controls="inspector"><span data-icon="branch"></span><span>Changes</span></button></nav>
       </header>
       <div class="workspace-body" id="workspaceBody">
         <section class="conversation" id="conversation" data-empty="true" aria-label="Conversation">
           <div class="welcome" id="welcome"><div class="welcome-brand">June</div><h2>What are we building?</h2><p id="welcomeText">Open a project to get started, or capture an idea below.</p><button id="welcomeAction" class="quiet-button" data-action="add-project"><span data-icon="folder-plus"></span><span>Open a project</span></button></div>
           <div id="chatHistory" class="chat-history" aria-label="Messages" tabindex="0" hidden></div>
           <div class="composer-wrap">
-            <form id="composerForm" class="composer">
+            <div id="temporaryNotice" class="temporary-notice" hidden>Not saved to history. Memories and skills are off.</div><form id="composerForm" class="composer">
               <label for="composerInput" class="sr-only">Message June</label><textarea id="composerInput" rows="2" placeholder="Describe what you want to build..." aria-describedby="composerHint"></textarea>
-              <div class="composer-toolbar"><span class="local-label"><span class="status-dot"></span>Local draft</span><button id="sendBtn" class="send-button" type="submit" title="Save message locally (Enter)" aria-label="Save message locally" disabled><span data-icon="arrow-up"></span></button></div>
+              <div class="composer-toolbar"><span class="local-label"><span class="status-dot"></span><span id="draftLabel">Local draft</span></span><button id="sendBtn" class="send-button" type="submit" title="Save message locally (Enter)" aria-label="Save message locally" disabled><span data-icon="arrow-up"></span></button></div>
             </form>
-            <p id="composerHint" class="composer-hint">Messages stay on this device. <button class="text-button" data-action="connection">Set up your agent backend<span data-icon="arrow-right"></span></button></p>
+            <div class="composer-context"><button id="activeSetupButton" class="text-button" data-extra="cookbook" hidden></button><span id="compactionBadge" class="context-badge" hidden>Context summary saved</span></div><p id="composerHint" class="composer-hint">Messages stay on this device. <button class="text-button" data-action="connection">Set up your agent backend<span data-icon="arrow-right"></span></button></p>
           </div>
         </section>
         <section id="filePreview" class="file-preview" aria-label="Read-only file preview" hidden>
@@ -82,7 +84,6 @@
       </div>
     </div><footer class="dialog-footer"><span id="settingsSaveState" role="status">Changes save automatically.</span><button class="secondary-button" data-close="settingsModal">Done</button></footer>
   </dialog>
-  <dialog id="chatOptions" class="small-dialog" aria-labelledby="chatOptionsTitle"><header class="dialog-header"><h2 id="chatOptionsTitle">Chat options</h2><button class="icon-button" data-close="chatOptions" aria-label="Close chat options"><span data-icon="x"></span></button></header><div class="dialog-body"><button class="menu-action" data-action="rename-chat"><span data-icon="edit"></span>Rename chat</button><button class="menu-action danger-text" data-action="delete-chat"><span data-icon="trash"></span>Delete chat</button></div></dialog>
   <dialog id="actionDialog" class="small-dialog" aria-labelledby="actionTitle"><form id="actionForm"><header class="dialog-header"><h2 id="actionTitle"></h2></header><div class="dialog-body"><p id="actionMessage"></p><label id="actionInputLabel" class="stacked-setting" hidden>Chat name<input id="actionInput" maxlength="120"></label></div><footer class="dialog-footer"><button type="button" class="secondary-button" data-close="actionDialog">Cancel</button><button id="actionConfirm" type="submit" class="secondary-button">Confirm</button></footer></form></dialog>
   <div id="toast" class="toast" role="status" hidden></div>
   <script type="module" src="app.js"></script>
