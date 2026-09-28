@@ -30,7 +30,7 @@ projectButton.addEventListener('click', () => {
   projectButton.setAttribute('aria-expanded', String(open));
 });
 
-$$('#projectMenu [data-project]').forEach(btn => btn.addEventListener('click', () => setProject(btn.dataset.project)));
+$('#projectMenu [data-project]').forEach(btn => btn.addEventListener('click', () => setProject(btn.dataset.project, btn.dataset.path || '')));
 
 document.addEventListener('click', (e) => {
   if (!projectButton.contains(e.target) && !projectMenu.contains(e.target)) {
@@ -120,13 +120,49 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closePalette(); projectMenu.classList.add('hidden'); $('.sidebar').classList.remove('mobile-open'); }
 });
 
-$('#addProjectBtn').addEventListener('click', () => {
-  const name = prompt('Project name');
-  if (!name) return;
+function addProjectMenuItem(name, projectPath = '') {
+  const existing = $('#projectMenu [data-project]').find(btn =>
+    btn.dataset.path === projectPath || (!projectPath && btn.dataset.project === name)
+  );
+
+  if (existing) {
+    setProject(existing.dataset.project, existing.dataset.path || projectPath);
+    return;
+  }
+
   const btn = document.createElement('button');
   btn.dataset.project = name;
-  btn.innerHTML = `<span class="project-dot"></span><span>${name}</span><small>Local project</small>`;
-  btn.addEventListener('click', () => setProject(name));
+  if (projectPath) btn.dataset.path = projectPath;
+
+  const dot = document.createElement('span');
+  dot.className = 'project-dot';
+
+  const label = document.createElement('span');
+  label.textContent = name;
+
+  const detail = document.createElement('small');
+  detail.textContent = projectPath || 'Local project';
+
+  btn.append(dot, label, detail);
+  btn.addEventListener('click', () => setProject(name, projectPath));
+
   $('#projectMenu').insertBefore(btn, $('.project-menu-sep'));
-  setProject(name);
+  setProject(name, projectPath);
+}
+
+$('#addProjectBtn').addEventListener('click', async () => {
+  if (desktop?.selectProjectDirectory) {
+    try {
+      const project = await desktop.selectProjectDirectory();
+      if (!project) return;
+      addProjectMenuItem(project.name, project.path);
+      return;
+    } catch (error) {
+      console.error('Native project picker failed:', error);
+    }
+  }
+
+  const name = prompt('Project name');
+  if (!name) return;
+  addProjectMenuItem(name);
 });
