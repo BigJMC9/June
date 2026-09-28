@@ -354,7 +354,8 @@ function createWindow() {
     minHeight: 640,
     backgroundColor: '#101317',
     show: false,
-    autoHideMenuBar: !isMac,
+    frame: false,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
@@ -399,6 +400,31 @@ function registerDesktopIpc() {
     electronVersion: process.versions.electron,
     isPackaged: app.isPackaged
   }));
+
+  ipcMain.handle('june:window-minimize', event => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) win.minimize();
+    return true;
+  });
+
+  ipcMain.handle('june:window-toggle-maximize', event => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return false;
+    if (win.isMaximized()) win.unmaximize();
+    else win.maximize();
+    return win.isMaximized();
+  });
+
+  ipcMain.handle('june:window-is-maximized', event => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    return Boolean(win?.isMaximized());
+  });
+
+  ipcMain.handle('june:window-close', event => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) win.close();
+    return true;
+  });
 
   ipcMain.handle('june:list-projects', () => projectStore.map(project => ({ ...project })));
 
