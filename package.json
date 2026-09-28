@@ -1,0 +1,68 @@
+{
+  "name": "june",
+  "version": "0.1.0",
+  "private": true,
+  "description": "June AI coding workspace desktop application",
+  "main": "electron/main.cjs",
+  "author": "BigJMC9",
+  "license": "GPL-3.0-only",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "dev:tools": "cross-env JUNE_DEVTOOLS=1 electron .",
+    "pack": "electron-builder --dir",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win nsis",
+    "build:mac": "electron-builder --mac dmg zip",
+    "build:linux": "electron-builder --linux AppImage"
+  },
+  "devDependencies": {
+    "cross-env": "^10.0.0",
+    "electron": "44.4.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.bigjmc9.june",
+    "productName": "June",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "styles.css",
+      "app.js",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.developer-tools"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Development"
+    }
+  }
+}

@@ -1,196 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>June — AI Coding Workspace</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>June</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="rail" aria-label="Primary navigation">
-      <div class="brand" title="June">J</div>
-      <button class="rail-btn active" data-view="chat" title="Chat" aria-label="Chat">
-        <svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4V5z"/></svg>
-      </button>
-      <button class="rail-btn" data-view="search" title="Search" aria-label="Search">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      </button>
-      <button class="rail-btn" data-view="files" title="Files" aria-label="Files">
-        <svg viewBox="0 0 24 24"><path d="M4 4h6l2 3h8v13H4z"/></svg>
-      </button>
-      <div class="rail-spacer"></div>
-      <button class="rail-btn" data-view="settings" title="Settings" aria-label="Settings">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1A7 7 0 0 0 15 6l-.3-2.6h-4L10.4 6A7 7 0 0 0 8 7.1l-2.4-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.4-1A7 7 0 0 0 10.4 18l.3 2.6h4L15 18a7 7 0 0 0 2.5-1.1l2.4 1 2-3.4-2-1.5a7 7 0 0 0 .1-1z"/></svg>
-      </button>
-    </aside>
-
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <button id="projectButton" class="project-switcher" aria-haspopup="listbox" aria-expanded="false">
-          <span class="project-dot"></span>
-          <span class="project-name">June</span>
-          <svg viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg>
-        </button>
-        <div id="projectMenu" class="project-menu hidden" role="listbox">
-          <button data-project="June"><span class="project-dot"></span><span>June</span><small>~/Development/June</small></button>
-          <button data-project="JCOS"><span class="project-dot alt"></span><span>JCOS</span><small>~/Development/JCOS</small></button>
-          <button data-project="Jurat"><span class="project-dot warn"></span><span>Jurat</span><small>~/Development/Jurat</small></button>
-          <div class="project-menu-sep"></div>
-          <button id="addProjectBtn" class="muted-action">+ Add project</button>
+  <header class="titlebar" aria-label="Application window">
+    <div class="window-controls">
+      <button id="windowMinimizeBtn" class="window-control" aria-label="Minimize" title="Minimize"><span data-icon="minus"></span></button>
+      <button id="windowMaximizeBtn" class="window-control" aria-label="Maximize" title="Maximize"><span data-icon="maximize"></span></button>
+      <button id="windowCloseBtn" class="window-control window-close" aria-label="Close window" title="Close window"><span data-icon="x"></span></button>
+    </div>
+  </header>
+  <div class="app-shell" id="appShell">
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+      <div class="sidebar-brand"><span class="wordmark">June<span class="brand-period">.</span></span><button class="icon-button" data-action="sidebar" aria-label="Collapse sidebar" title="Collapse sidebar (Ctrl/Cmd+B)"><span data-icon="panel"></span></button></div>
+      <div class="project-picker">
+        <button id="projectButton" class="project-button" aria-expanded="false" aria-controls="projectMenu" title="Switch project"><span data-icon="folder"></span><span id="projectName">Select project</span><span data-icon="chevron-down"></span></button>
+        <div id="projectMenu" class="project-menu" hidden>
+          <div class="menu-heading">Projects</div><div id="projectList"></div>
+          <button class="menu-action" data-action="add-project"><span data-icon="plus"></span>Open a folder</button>
+          <button class="menu-action" data-action="personal"><span data-icon="chat"></span>Chats without a project</button>
         </div>
       </div>
-
-      <div class="quick-actions">
-        <button id="newChatBtn" class="quick-action primary-action">
-          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-          <span>New chat</span><kbd>Ctrl N</kbd>
-        </button>
-        <button id="searchBtn" class="quick-action">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <span>Search</span><kbd>Ctrl K</kbd>
-        </button>
-      </div>
-
-      <section class="side-section">
-        <div class="section-title-row"><span>Chats</span><button title="Chat options">•••</button></div>
-        <div id="chatList" class="chat-list">
-          <button class="chat-item active"><span class="chat-title">Build coding workspace shell</span><span class="chat-meta">2m</span></button>
-          <button class="chat-item"><span class="chat-title">Agent memory architecture</span><span class="chat-meta">1h</span></button>
-          <button class="chat-item"><span class="chat-title">Streaming patch renderer</span><span class="chat-meta">Yesterday</span></button>
-          <button class="chat-item"><span class="chat-title">Model routing strategy</span><span class="chat-meta">Mon</span></button>
-        </div>
+      <nav class="primary-nav" aria-label="Chat actions">
+        <button id="newChatBtn" class="nav-button" data-action="new-chat"><span data-icon="plus"></span><span>New chat</span><kbd data-shortcut="N">Ctrl N</kbd></button>
+        <button id="searchBtn" class="nav-button" data-action="search"><span data-icon="search"></span><span>Search</span><kbd data-shortcut="K">Ctrl K</kbd></button>
+      </nav>
+      <section class="chat-section">
+        <button id="chatsToggle" class="section-toggle" aria-expanded="true" aria-controls="chatList"><span>Chats</span><span data-icon="chevron-down"></span></button>
+        <div id="chatList" class="chat-list"></div>
       </section>
-
-      <section class="side-section project-context">
-        <div class="section-title-row"><span>Project</span><button title="Refresh project">↻</button></div>
-        <button class="context-row"><span>◫</span><div><strong>Repository</strong><small>BigJMC9/June</small></div></button>
-        <button class="context-row"><span>⑂</span><div><strong>Branch</strong><small>main</small></div></button>
-        <button class="context-row"><span>●</span><div><strong>Agent</strong><small class="status-ready">Ready</small></div></button>
-      </section>
-
-      <div class="sidebar-footer">
-        <button class="profile-btn"><span class="avatar">J</span><span><strong>Jake</strong><small>Local workspace</small></span><span class="chev">›</span></button>
-      </div>
+      <footer class="sidebar-footer"><button id="sidebarSettingsBtn" class="nav-button" data-action="settings"><span data-icon="settings"></span><span>Settings</span><kbd data-shortcut=",">Ctrl ,</kbd></button></footer>
     </aside>
-
+    <button id="sidebarScrim" class="scrim" aria-label="Close sidebar" hidden></button>
     <main class="workspace">
       <header class="workspace-header">
-        <div class="header-left">
-          <button id="sidebarToggle" class="icon-btn" title="Toggle sidebar"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg></button>
-          <div class="breadcrumb"><span>June</span><span>/</span><strong>AI Coding Workspace</strong></div>
-        </div>
-        <div class="header-actions">
-          <button class="chip"><span class="green-dot"></span>Agent online</button>
-          <button class="icon-btn" title="Command palette">⌘</button>
-        </div>
+        <div class="workspace-heading"><button id="sidebarToggle" class="icon-button reopen-sidebar" data-action="sidebar" aria-label="Open sidebar" title="Open sidebar (Ctrl/Cmd+B)" aria-controls="sidebar" aria-expanded="true"><span data-icon="panel"></span></button><h1 id="chatTitle">New chat</h1><button id="chatOptionsBtn" class="icon-button" data-action="chat-options" aria-label="Chat options" title="Rename or delete chat" hidden><span data-icon="more"></span></button></div>
+        <nav class="workspace-tools" aria-label="Project tools"><button id="filesButton" class="tool-button" data-action="files" aria-pressed="false" aria-controls="inspector"><span data-icon="folder"></span><span>Files</span></button><button id="changesButton" class="tool-button" data-action="changes" aria-pressed="false" aria-controls="inspector"><span data-icon="branch"></span><span>Changes</span></button></nav>
       </header>
-
-      <div class="content-grid">
-        <section class="conversation-panel">
-          <div class="conversation-toolbar">
-            <div>
-              <h1>Build coding workspace shell</h1>
-              <p>Agent session · June</p>
-            </div>
-            <div class="toolbar-actions">
-              <button class="icon-btn" title="Open terminal">⌁</button>
-              <button class="icon-btn" title="More">•••</button>
-            </div>
-          </div>
-
-          <div id="chatHistory" class="chat-history">
-            <article class="message user-message">
-              <div class="message-role">You</div>
-              <div class="message-body">Create an Odysseus-inspired frontend for June, but focused on coding workflows. Keep projects, chats, search, agent activity, files and diffs.</div>
-            </article>
-
-            <article class="message assistant-message">
-              <div class="message-role"><span class="agent-orb"></span>June</div>
-              <div class="message-body">
-                <p>I’ll use a compact two-level navigation model: a narrow app rail and a project-aware sidebar. The main surface stays conversation-first, with a contextual workbench on the right.</p>
-                <div class="agent-step done"><span>✓</span><div><strong>Workspace structure mapped</strong><small>Navigation, project context, editor tools</small></div></div>
-                <div class="agent-step active"><span>↻</span><div><strong>Building frontend shell</strong><small>Project switcher, chat list, workbench and composer</small></div></div>
-                <div class="code-card">
-                  <div class="code-card-head"><span>src/ui/workspace.ts</span><button>Copy</button></div>
-                  <pre><code>export interface WorkspaceContext {
-  projectId: string;
-  branch: string;
-  activeFile?: string;
-  runId?: string;
-}</code></pre>
-                </div>
-              </div>
-            </article>
-          </div>
-
+      <div class="workspace-body" id="workspaceBody">
+        <section class="conversation" id="conversation" data-empty="true" aria-label="Conversation">
+          <div class="welcome" id="welcome"><div class="welcome-brand">June</div><h2>What are we building?</h2><p id="welcomeText">Open a project to get started, or capture an idea below.</p><button id="welcomeAction" class="quiet-button" data-action="add-project"><span data-icon="folder-plus"></span><span>Open a project</span></button></div>
+          <div id="chatHistory" class="chat-history" aria-label="Messages" tabindex="0" hidden></div>
           <div class="composer-wrap">
-            <div class="composer">
-              <textarea id="composerInput" rows="1" placeholder="Ask June to inspect, edit, run, test, or explain code..."></textarea>
-              <div class="composer-footer">
-                <div class="composer-tools">
-                  <button title="Attach files">＋</button>
-                  <button title="Context">@</button>
-                  <button title="Commands">/</button>
-                </div>
-                <div class="composer-actions">
-                  <button id="modeBtn" class="mode-pill"><span class="mode-dot"></span>Agent <span>⌄</span></button>
-                  <button id="sendBtn" class="send-btn" title="Send"><svg viewBox="0 0 24 24"><path d="m5 12 14-7-4 14-3-5z"/></svg></button>
-                </div>
-              </div>
-            </div>
-            <div class="composer-hint">June can inspect and modify files in the selected project. Review changes before applying.</div>
+            <form id="composerForm" class="composer">
+              <label for="composerInput" class="sr-only">Message June</label><textarea id="composerInput" rows="2" placeholder="Describe what you want to build..." aria-describedby="composerHint"></textarea>
+              <div class="composer-toolbar"><span class="local-label"><span class="status-dot"></span>Local draft</span><button id="sendBtn" class="send-button" type="submit" title="Save message locally (Enter)" aria-label="Save message locally" disabled><span data-icon="arrow-up"></span></button></div>
+            </form>
+            <p id="composerHint" class="composer-hint">Messages stay on this device. <button class="text-button" data-action="connection">Set up your agent backend<span data-icon="arrow-right"></span></button></p>
           </div>
         </section>
-
-        <aside class="workbench-panel">
-          <div class="workbench-tabs">
-            <button class="workbench-tab active" data-tab="changes">Changes <span class="badge">3</span></button>
-            <button class="workbench-tab" data-tab="files">Files</button>
-            <button class="workbench-tab" data-tab="runs">Runs</button>
-          </div>
-
-          <div class="workbench-content" data-panel="changes">
-            <div class="workbench-summary">
-              <div><strong>3 files changed</strong><span>+184 −26</span></div>
-              <button class="outline-btn">Review all</button>
-            </div>
-            <div class="file-change"><span class="file-icon">JS</span><div><strong>app.js</strong><small>Frontend orchestration</small></div><span class="diff plus">+92</span><span class="diff minus">−10</span></div>
-            <div class="file-change"><span class="file-icon">CSS</span><div><strong>styles.css</strong><small>Workspace visual system</small></div><span class="diff plus">+71</span><span class="diff minus">−12</span></div>
-            <div class="file-change"><span class="file-icon">HT</span><div><strong>index.html</strong><small>Application shell</small></div><span class="diff plus">+21</span><span class="diff minus">−4</span></div>
-            <div class="diff-preview">
-              <div class="diff-head"><span>app.js</span><span>Modified</span></div>
-              <pre><span class="context"> const project = getCurrentProject();</span>
-<span class="removed">- renderLegacySidebar();</span>
-<span class="added">+ renderProjectWorkspace(project);</span>
-<span class="added">+ bindAgentStream(project.id);</span></pre>
-            </div>
-          </div>
-
-          <div class="workbench-content hidden" data-panel="files">
-            <div class="tree"><button>⌄ <strong>src</strong></button><button class="indent">⌄ <strong>ui</strong></button><button class="indent2 active-file">◇ workspace.ts</button><button class="indent2">◇ projectStore.ts</button><button class="indent">◇ agent.ts</button><button>◇ package.json</button><button>◇ README.md</button></div>
-          </div>
-
-          <div class="workbench-content hidden" data-panel="runs">
-            <div class="run-card success"><div><strong>Frontend checks</strong><small>npm run test</small></div><span>Passed</span></div>
-            <div class="run-card success"><div><strong>Type check</strong><small>npm run typecheck</small></div><span>Passed</span></div>
-            <div class="run-card running"><div><strong>Agent task</strong><small>Build workspace UI</small></div><span>Running</span></div>
-          </div>
+        <section id="filePreview" class="file-preview" aria-label="Read-only file preview" hidden>
+          <header class="preview-header"><div><strong id="filePreviewName"></strong><small id="filePreviewPath"></small></div><div class="preview-actions"><span id="filePreviewMeta"></span><button id="revealFileBtn" class="icon-button" data-action="reveal-file" aria-label="Reveal file in file manager" title="Reveal file"><span data-icon="external"></span></button><button id="closeFileBtn" class="icon-button" data-action="close-file" aria-label="Back to chat" title="Back to chat"><span data-icon="x"></span></button></div></header>
+          <pre id="filePreviewCode" tabindex="0"><code></code></pre><p id="filePreviewNotice" class="empty-state" role="status" hidden></p>
+        </section>
+        <aside id="inspector" class="inspector" aria-label="Project workbench" hidden>
+          <header class="inspector-header"><div class="inspector-tabs" role="tablist" aria-label="Project workbench"><button id="filesTab" role="tab" aria-selected="true" aria-controls="filesPanel" data-panel="files">Files</button><button id="changesTab" role="tab" aria-selected="false" aria-controls="changesPanel" data-panel="changes" tabindex="-1">Changes</button></div><button class="icon-button" data-action="close-inspector" aria-label="Close workbench" title="Close workbench"><span data-icon="x"></span></button></header>
+          <section id="filesPanel" class="inspector-content" role="tabpanel" aria-labelledby="filesTab"><div class="inspector-context"><span id="filesProjectName">No project selected</span><div><button id="revealProjectBtn" class="icon-button" data-action="reveal-project" aria-label="Reveal project in file manager" title="Reveal project"><span data-icon="external"></span></button><button id="refreshFilesBtn" class="icon-button" data-action="refresh-files" aria-label="Refresh files" title="Refresh files"><span data-icon="refresh"></span></button></div></div><div id="fileTree" class="file-tree"></div></section>
+          <section id="changesPanel" class="inspector-content" role="tabpanel" aria-labelledby="changesTab" hidden><div class="inspector-context"><span class="branch-label"><span data-icon="branch"></span><span id="branchSummary">No project selected</span></span><button id="refreshChangesBtn" class="icon-button" data-action="refresh-changes" aria-label="Refresh Git status" title="Refresh Git status"><span data-icon="refresh"></span></button></div><p id="changesSummary" class="list-caption"></p><div id="changesList"></div><p class="inspector-note">Working-tree status. Select an existing file to preview its contents.</p></section>
         </aside>
       </div>
     </main>
   </div>
-
-  <div id="commandPalette" class="palette hidden" role="dialog" aria-modal="true">
-    <div class="palette-card">
-      <div class="palette-input-row"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="paletteInput" placeholder="Search chats, files, commands..." /><kbd>Esc</kbd></div>
-      <div class="palette-section-label">Quick actions</div>
-      <button class="palette-item"><span>＋</span><div><strong>New chat</strong><small>Start a new agent session</small></div><kbd>Ctrl N</kbd></button>
-      <button class="palette-item"><span>⌕</span><div><strong>Search project</strong><small>Find files and symbols</small></div><kbd>Ctrl P</kbd></button>
-      <button class="palette-item"><span>⑂</span><div><strong>Switch project</strong><small>Change active workspace</small></div></button>
-    </div>
-  </div>
-
+  <dialog id="commandPalette" class="search-dialog" aria-labelledby="searchTitle">
+    <header class="search-header"><span data-icon="search"></span><h2 id="searchTitle" class="sr-only">Search this project</h2><input id="paletteInput" type="search" placeholder="Search chats, files, and commands..." aria-label="Search chats, files, and commands" autocomplete="off"><button class="icon-button" data-close="commandPalette" aria-label="Close search"><span data-icon="x"></span></button></header>
+    <p id="searchScope" class="list-caption"></p><div id="paletteResults" class="search-results"></div><footer class="search-footer">Up / Down to navigate &middot; Enter to open &middot; Esc to close</footer>
+  </dialog>
+  <dialog id="settingsModal" class="settings-dialog" aria-labelledby="settingsTitle">
+    <header class="dialog-header"><h2 id="settingsTitle">Settings</h2><button id="closeSettingsBtn" class="icon-button" data-close="settingsModal" aria-label="Close settings"><span data-icon="x"></span></button></header>
+    <div class="settings-layout"><nav class="settings-nav" role="tablist" aria-label="Settings categories" aria-orientation="vertical"><button role="tab" id="generalTab" data-settings="general" aria-selected="true" aria-controls="generalSettings"><span data-icon="sliders"></span>General</button><button role="tab" id="workspaceTab" data-settings="workspace" aria-selected="false" aria-controls="workspaceSettings" tabindex="-1"><span data-icon="folder"></span>Workspace</button><button role="tab" id="backendTab" data-settings="backend" aria-selected="false" aria-controls="backendSettings" tabindex="-1"><span data-icon="plug"></span>Backend</button></nav>
+      <div class="settings-content">
+        <section id="generalSettings" role="tabpanel" aria-labelledby="generalTab"><h3>Make it yours</h3><label class="setting-row"><span>Theme<small>Applies to the whole workspace.</small></span><select data-setting="theme"><option value="dark">Dark</option><option value="midnight">Midnight</option><option value="light">Light</option></select></label><label class="setting-row"><span>Density<small>Space between navigation items.</small></span><select data-setting="density"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label><p class="settings-note">Shortcuts: Ctrl/Cmd+N new chat, K search, B sidebar, and comma for settings. Shift+Enter adds a new line.</p><p id="runtimeInfo" class="settings-note">June &middot; web preview</p></section>
+        <section id="workspaceSettings" role="tabpanel" aria-labelledby="workspaceTab" hidden><h3>Your workspace</h3><label class="setting-row"><span>Remember last project<small>Reopen it when June starts.</small></span><input type="checkbox" data-setting="rememberProject"></label><label class="setting-row"><span>Show hidden files<small>Include dotfiles, such as .env.</small></span><input type="checkbox" data-setting="showHidden"></label><label class="setting-row"><span>Hide generated folders<small>Skip node_modules, .git, dist, and similar folders.</small></span><input type="checkbox" data-setting="excludeCommon"></label><label class="setting-row"><span>File preview limit<small>Previews are read-only.</small></span><select data-setting="previewLimit"><option value="524288">512 KB</option><option value="1048576">1 MB</option><option value="2097152">2 MB</option><option value="4194304">4 MB</option></select></label><button id="removeCurrentProjectBtn" class="danger-button" data-action="remove-project" disabled>Remove current project</button><p class="settings-note">Only removes the project from June. Your files and saved chats are not deleted.</p></section>
+        <section id="backendSettings" role="tabpanel" aria-labelledby="backendTab" hidden><h3>Connect your pipeline</h3><p class="settings-note">June currently saves messages locally. A reachable server does not enable agent responses or tool execution yet.</p><label class="stacked-setting">Backend URL<input data-setting="backendUrl" id="settingBackendUrl" type="url" placeholder="http://127.0.0.1:8765" aria-describedby="backendHelp"></label><small id="backendHelp">Connection test requests GET /health at this base URL.</small><div class="connection-test"><button id="testBackendBtn" class="secondary-button" data-action="test-backend">Test connection</button><span id="backendTestResult" role="status">Not tested.</span></div>
+          <details class="advanced-settings"><summary>Pipeline preferences</summary><p class="settings-note">Reserved for the backend integration. These saved preferences do not currently grant or enforce tool permissions.</p><label class="setting-row"><span>Default mode</span><select data-setting="agentMode"><option value="agent">Agent</option><option value="ask">Ask</option><option value="plan">Plan</option></select></label><label class="setting-row"><span>Default model</span><input data-setting="defaultModel" type="text" placeholder="Model identifier"></label><label class="setting-row"><span>Context budget</span><input data-setting="contextBudget" type="number" min="1024" max="2097152" step="1"></label><label class="setting-row"><span>Review agent edits first</span><input type="checkbox" data-setting="requireApproval"></label><label class="setting-row"><span>Allow terminal tools</span><input type="checkbox" data-setting="allowTerminal"></label><label class="setting-row"><span>Allow network tools</span><input type="checkbox" data-setting="allowNetwork"></label></details>
+        </section>
+      </div>
+    </div><footer class="dialog-footer"><span id="settingsSaveState" role="status">Changes save automatically.</span><button class="secondary-button" data-close="settingsModal">Done</button></footer>
+  </dialog>
+  <dialog id="chatOptions" class="small-dialog" aria-labelledby="chatOptionsTitle"><header class="dialog-header"><h2 id="chatOptionsTitle">Chat options</h2><button class="icon-button" data-close="chatOptions" aria-label="Close chat options"><span data-icon="x"></span></button></header><div class="dialog-body"><button class="menu-action" data-action="rename-chat"><span data-icon="edit"></span>Rename chat</button><button class="menu-action danger-text" data-action="delete-chat"><span data-icon="trash"></span>Delete chat</button></div></dialog>
+  <dialog id="actionDialog" class="small-dialog" aria-labelledby="actionTitle"><form id="actionForm"><header class="dialog-header"><h2 id="actionTitle"></h2></header><div class="dialog-body"><p id="actionMessage"></p><label id="actionInputLabel" class="stacked-setting" hidden>Chat name<input id="actionInput" maxlength="120"></label></div><footer class="dialog-footer"><button type="button" class="secondary-button" data-close="actionDialog">Cancel</button><button id="actionConfirm" type="submit" class="secondary-button">Confirm</button></footer></form></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
   <script type="module" src="app.js"></script>
 </body>
 </html>
