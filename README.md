@@ -1,99 +1,105 @@
-# June UI Prototype
+# June - simplified workspace
 
-A lightweight Odysseus-inspired frontend shell for an AI coding workspace.
+A conversation-first redesign of the existing June Electron frontend. One
+project-aware sidebar, a focused composer, and Files/Changes when needed.
 
-## Included
+## Apply this update
 
-- Project switcher with persistent active project
-- New chat and search / command palette
-- Chat session list
-- Project / repository / branch context
-- Conversation-first AI workspace
-- Agent activity cards
-- Coding composer with Agent mode
-- Changes / Files / Runs workbench
-- Responsive sidebar behavior
-- Keyboard shortcuts: `Ctrl/Cmd+K`, `Ctrl/Cmd+N`, `Esc`
+This ZIP is a renderer source update, not a standalone app or installer.
+It targets BigJMC9/June's existing `desktop-electron` branch, starting from
+`c27d5b9efa7726960a4a3c3f0491f58e120bfc7c`.
 
-## Run
+1. Fully close June. Back up or commit any local frontend edits.
+2. Extract this ZIP into a temporary folder.
+3. Copy `index.html`, `styles.css`, and `app.js` into your existing June project
+   root, replacing those three files. Keep your existing `electron/`,
+   `package.json`, lockfile, LICENSE, and other project files.
+4. In the existing June project, run `npm run dev`.
 
-Open `index.html` directly, or serve the directory with any static server.
+No new npm dependencies are needed. The included test and documentation files
+are optional. The final GitHub branch update was blocked; `git pull` alone will
+not install this redesign.
 
-Example:
+## Layout
 
-```bash
-python -m http.server 8080
+The sidebar contains the project selector, New chat, Search, collapsible Chats,
+and Settings. Ctrl/Cmd+B collapses the whole sidebar. A new conversation has a
+centered welcome and composer; after saving a message, the composer sits at the
+bottom. Files and Changes open an optional workbench, closed by default. On
+narrow screens it overlays the conversation instead of compressing it.
+
+The duplicate project metadata, second session header, inactive attachment and
+terminal controls, and unused Runs panel have been removed. The title bar keeps
+only minimize, maximize/restore, and close. All controls use consistent local
+SVG geometry, with no icon fonts or external asset requests.
+
+## Functional behavior
+
+- Existing preload methods provide project selection, lazy directory browsing,
+  read-only text previews, file size/binary/error notices, file search, Git
+  working-tree status, and operating-system reveal.
+- Chats are scoped to the current project. Search includes this project's chats,
+  file names/paths, and commands. Directory results expand their location.
+- Chat rename and confirmed deletion work. Drafts survive chat and project
+  switching, using the existing app's local storage alongside a new draft key.
+- Existing `june.chats` and `june.settings` data is retained. Removing a project
+  does not delete its files or saved chats; reopening the folder restores chats.
+- Async responses are checked against the current project/request, so a slow
+  older result cannot replace a newer search or file preview.
+- Native dialogs retain keyboard focus and support Escape. Settings tabs support
+  arrow keys. Collapsed navigation is not keyboard-focusable.
+
+Shortcuts: Ctrl/Cmd+N new chat; K or P search; B sidebar; comma settings.
+Enter saves a local message; Shift+Enter adds a line. IME composition is not
+submitted prematurely.
+
+## Settings and backend boundary
+
+Settings is organized into General, Workspace, and Backend. The existing model,
+mode, context budget, and tool-policy preferences remain under Pipeline
+preferences. They are saved for future integration, not enforced permissions.
+
+Messages are saved locally; there is no model response, agent execution, terminal
+execution, or patch application in this update. A successful GET /health test
+means the server is reachable, not that agent functionality is enabled.
+
+The Electron main process, preload APIs, and packaging are unchanged. This UI
+update is not a security audit of the existing filesystem/agent host.
+Project content is rendered as text. The renderer CSP disallows direct network
+connections; future streaming requires a validated bridge or a deliberate CSP
+change.
+
+## Validation
+
+`node --check app.js` passed. The included Playwright suite passed 60 renderer
+checks in system Chromium, using the documented offline mode with simulated
+Electron methods and in-memory test storage. Screenshots are actual renders of
+the included UI; project/file fixtures are simulated.
+
+Native Windows/Electron behavior, OS folder dialogs, actual filesystem access,
+CSP/module loading, and real storage persistence were not tested in that mode.
+Those still require a local desktop smoke test after applying the update.
+
+To run the optional tests normally:
+
+```sh
+python -m pip install playwright
+python -m playwright install chromium
+python tests/ui_smoke.py
 ```
 
-Then visit `http://localhost:8080`.
+For an environment that does not allow localhost navigation:
 
-## Backend integration seams
+```sh
+JUNE_OFFLINE_TEST=1 python tests/ui_smoke.py
+```
 
-The frontend is intentionally framework-light. Replace the placeholder send flow in `app.js` with your agent backend:
+PowerShell equivalent:
 
-- `POST /api/chats`
-- `POST /api/runs`
-- SSE/WebSocket stream for agent events
-- `GET /api/projects`
-- `GET /api/projects/:id/files`
-- `GET /api/runs/:id/changes`
-- patch approval / apply endpoints
+```powershell
+$env:JUNE_OFFLINE_TEST = "1"
+python tests/ui_smoke.py
+```
 
-The current UI already separates project context, chat state, file changes, and run status, so those can be wired without changing the layout model.
-
-
-## Desktop integration
-
-The Electron shell currently provides:
-
-- Native application window
-- Single-instance behavior
-- Secure context-isolated preload bridge
-- Native project-folder picker
-- External HTTP/HTTPS links opening in the system browser
-- Windows NSIS packaging
-- macOS DMG/ZIP packaging
-- Linux AppImage packaging
-
-The renderer does not receive direct Node.js, filesystem, shell, or child-process access. Add privileged desktop capabilities as explicit IPC methods as the local agent/backend is implemented.
-
-
-## Functional desktop workspace
-
-The `desktop-electron` branch now uses real local project data rather than prototype placeholders.
-
-Available now:
-
-- Add local projects with the native folder picker
-- Persist authorised projects in Electron user data
-- Restore the last active project
-- Browse real project directories with lazy folder expansion
-- Hide/show dotfiles and common generated directories
-- Preview UTF-8 text files with a configurable size limit
-- Detect binary/oversized files without loading them into the renderer
-- Search project file and folder names
-- Reveal projects/files in the operating system
-- Read the current Git branch and uncommitted `git status`
-- Persist local chat sessions
-- Persist appearance, workspace, agent, and safety settings
-- Test the configured agent backend via `GET /health`
-- Theme and density settings that apply immediately
-
-### Security boundary
-
-All project paths must first be authorised through June's native project picker. The renderer cannot supply arbitrary filesystem paths: main-process IPC resolves requested paths beneath an authorised project root and rejects traversal outside it.
-
-The renderer remains sandboxed with `nodeIntegration: false` and `contextIsolation: true`. Filesystem, Git, OS reveal, and backend-health operations are exposed as narrow preload APIs.
-
-### Still waiting on the custom pipeline backend
-
-The UI intentionally does not fake these capabilities:
-
-- Model/agent response streaming
-- Agent file writes and patch application
-- Terminal command execution
-- Agent run history
-- Tool execution
-- Context assembly/model routing
-
-The settings and UI surfaces for those features are present so the backend can be connected without redesigning the frontend.
+Test output goes to `test-results/`. The included `validation/results.json`
+records the completed run. No fonts or third-party asset packages are bundled.
