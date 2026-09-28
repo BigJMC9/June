@@ -9,9 +9,18 @@
 <body>
   <div class="desktop-titlebar" aria-label="Window controls">
     <div class="window-controls">
-      <button id="windowMinimizeBtn" class="window-control" type="button" title="Minimize" aria-label="Minimize">—</button>
-      <button id="windowMaximizeBtn" class="window-control" type="button" title="Maximize" aria-label="Maximize">□</button>
-      <button id="windowCloseBtn" class="window-control close" type="button" title="Close" aria-label="Close">×</button>
+      <button id="windowMinimizeBtn" class="window-control" type="button" title="Minimize" aria-label="Minimize">
+        <svg class="window-control-icon" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.5h8"/></svg>
+      </button>
+      <button id="windowMaximizeBtn" class="window-control" type="button" title="Maximize" aria-label="Maximize">
+        <svg class="window-control-icon maximize-icon" viewBox="0 0 12 12" aria-hidden="true">
+          <rect class="maximize-box" x="2.25" y="2.25" width="7.5" height="7.5" rx=".35"/>
+          <path class="restore-box" d="M4 3h5v5M3 4h5v5H3z"/>
+        </svg>
+      </button>
+      <button id="windowCloseBtn" class="window-control close" type="button" title="Close" aria-label="Close">
+        <svg class="window-control-icon" viewBox="0 0 12 12" aria-hidden="true"><path d="m2.5 2.5 7 7M9.5 2.5l-7 7"/></svg>
+      </button>
     </div>
   </div>
 
@@ -31,12 +40,12 @@
 
       <div class="quick-actions">
         <button id="newChatBtn" class="quick-action primary-action">
-          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-          <span>New chat</span><kbd>Ctrl N</kbd>
+          <span class="sidebar-action-icon"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+          <span class="sidebar-action-label">New chat</span><kbd>Ctrl N</kbd>
         </button>
         <button id="searchBtn" class="quick-action">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <span>Search</span><kbd>Ctrl K</kbd>
+          <span class="sidebar-action-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+          <span class="sidebar-action-label">Search</span><kbd>Ctrl K</kbd>
         </button>
       </div>
 
@@ -56,8 +65,8 @@
 
       <div class="sidebar-footer">
         <button id="sidebarSettingsBtn" class="quick-action sidebar-settings-btn">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1A7 7 0 0 0 15 6l-.3-2.6h-4L10.4 6A7 7 0 0 0 8 7.1l-2.4-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.4-1A7 7 0 0 0 10.4 18l.3 2.6h4L15 18a7 7 0 0 0 2.5-1.1l2.4 1 2-3.4-2-1.5a7 7 0 0 0 .1-1z"/></svg>
-          <span>Settings</span><kbd>Ctrl ,</kbd>
+          <span class="sidebar-action-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1A7 7 0 0 0 15 6l-.3-2.6h-4L10.4 6A7 7 0 0 0 8 7.1l-2.4-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.4-1A7 7 0 0 0 10.4 18l.3 2.6h4L15 18a7 7 0 0 0 2.5-1.1l2.4 1 2-3.4-2-1.5a7 7 0 0 0 .1-1z"/></svg></span>
+          <span class="sidebar-action-label">Settings</span><kbd>Ctrl ,</kbd>
         </button>
       </div>
     </aside>
