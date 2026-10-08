@@ -1,27 +1,51 @@
-# Install the workspace-tools update
+# Install the Ollama / Agent / MCP / RAG update
 
-Base: BigJMC9/June main at 7d79ac1db9eaa16f56e699daf42533202a49bb0c.
-This archive is a source update, not a standalone installer.
+Base: BigJMC9/June main at fd964ba48d07cf70e405e4805d02b42cb5cb5cca.
+This is an overlay for an existing checkout, not an installer or a full Git clone.
+It does not change your Ollama installation or download any model weights.
 
-1. Fully close June/Electron. Commit or back up local source changes.
-2. Extract the archive and copy its contents into your existing June checkout,
-   merging directories. Preserve electron/main.cjs, package-lock.json and LICENSE.
-3. Run npm run dev. There are no new npm dependencies; the existing installed
-   dependencies can be reused. Missing dependencies still require npm install.
+1. Back up or commit local source changes. Fully close June, including its
+   background Electron process.
+2. Copy the contents of this archive to the repository root, merging directories
+   and replacing the files included in the archive.
+3. IMPORTANT: replace `electron/main.cjs` in this update as well. Earlier update
+   instructions said to retain it; those instructions no longer apply.
+4. Retain your existing `LICENSE`, `package-lock.json`, `.git` and `node_modules`.
+   They are deliberately not included here. No dependency version changed.
+5. Use Node 22.16+ (check `node --version`). Run `npm install` to reconcile package
+   metadata if necessary, then `npm run dev`.
+6. Start Ollama separately if it is not already running. Use Settings > Ollama >
+   Save & connect with `http://127.0.0.1:11434`. Pick an installed model in the
+   composer. If the list is empty, pull a model in Ollama and refresh the list.
 
-The package main entry changes to electron/start.cjs, which registers features
-and loads the original main.cjs. The updated preload and the new .mjs files must
-be copied too. Refreshing only the renderer is insufficient; restart Electron.
+Changing only app.js/index.html is not enough: the new `backend/` directory,
+`electron/backend.cjs`, main/start/preload changes, UI modules and package file
+must all be present. A browser refresh does not load a new Electron preload.
 
-## Manual desktop smoke test
-- Confirm project selection, real files/previews, Git status and window controls.
-- Open the June chat menu; rename/copy a chat. Export Markdown and PDF, testing
-  cancellation before saving. Inspect the exported PDF for Unicode and long lines.
-- Add a memory and a skill, approve the skill, restart, and verify persistence.
-- Import a small TXT/JSON/SKILL.md file; verify nothing saves until review.
-- Start Temporary, type a unique message and draft, end/restart. Confirm neither
-  appears in normal history and the normal draft is restored.
-- Choose a real model folder and scan. Check dependencies; missing executables
-  should be reported honestly, never displayed as successful installations.
+## First checks
 
-The code does not execute launch/download commands or run the custom agent.
+- Chat: choose an installed completion model, type a question, and watch its
+  streamed reply. Test Stop with a longer response.
+- Agent: open a project and choose a tool-capable model. Ask it to inspect files.
+  For edits, enable Offer file-edit tools in Settings > Ollama > Agent permissions,
+  save, and review the explicit proposal. Nothing should change before approval.
+- RAG: open Settings > Project RAG, save Keyword retrieval and Use RAG, then index
+  the active project. Ask about a file and inspect the source references.
+- Hybrid RAG: separately pull an embedding model in Ollama, refresh models, select
+  it in RAG settings, save, and reindex. No embedding model is downloaded by June.
+- MCP: add a trusted server, connect, select permitted tools, then ask the Agent
+  to use one. Both server launch and tool invocation should require consent.
+- Temporary: start a temporary chat, send a message, end the session, and confirm
+  it is absent from saved history. RAG and MCP should be unavailable in that mode.
+
+## Data compatibility
+
+The existing projects.json registry, normal chats, settings, Memories & skills,
+and Cookbook configurations are retained. The backend adds backend-settings.json
+and retrieval/rag.sqlite under Electron's userData directory (normally the June
+application-data directory). The new Ollama settings are separate from the old
+placeholder backend URL. This deliberately avoids treating an old arbitrary
+endpoint as permission to send code or launch tools.
+
+The source update does not delete existing chats, project files or indexes. Do
+not copy test fixtures into real project folders or import the test credentials.

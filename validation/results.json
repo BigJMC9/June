@@ -1,5 +1,5 @@
 {
-  "passed": 60,
+  "passed": 61,
   "tests": [
     "Workbench starts closed",
     "No old metadata or dead toolbar",
@@ -34,9 +34,10 @@
     "Modal traps focus",
     "Theme applies across app",
     "Checkbox settings persist in test storage",
-    "Invalid backend URL is not persisted",
-    "Health error is not described as connected",
-    "Reachable server still notes missing execution",
+    "Ollama configuration replaces the old placeholder health form",
+    "Missing native backend is described honestly",
+    "RAG settings are accessible",
+    "MCP settings are accessible",
     "Remember project off starts unselected",
     "Maximize control shows restore state",
     "Resize resynchronizes maximize icon",

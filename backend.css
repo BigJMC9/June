@@ -1,0 +1,48 @@
+/* Ollama, retrieval, and MCP surfaces share the existing June theme. */
+.backend-form { display: grid; gap: 13px; }
+.backend-form .stacked-setting { margin: 0; }
+.backend-form .setting-row { padding: 10px 0; }
+.backend-form input:not([type=checkbox]):not([type=hidden]), .backend-form select, .backend-form textarea { width: 100%; min-width: 0; border: 1px solid var(--border); padding: 8px 10px; background: var(--raised); border-radius: 7px; }
+.backend-form small { display:block; color:var(--subtle); font-size:12px; margin-top:5px; }
+.backend-form .setting-row > input[type=number] { width: 110px; }
+.backend-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.backend-grid label { display:grid; gap:6px; color:var(--muted); font-size:13px; }
+.backend-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.backend-card, .mcp-server-card { border:1px solid var(--border); background:var(--surface); border-radius:10px; padding:14px; margin:16px 0; }
+.installed-models { max-height:170px; overflow:auto; }
+.installed-model { display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:12px; }
+.installed-model small { color:var(--subtle); text-align:right; }
+.generation-controls { display:flex; align-items:center; gap:8px; min-width:0; flex:1; }
+.generation-controls select { max-width:230px; min-width:0; background:var(--raised); border:1px solid var(--border); padding:5px 8px; font-size:12px; height:32px; }
+#chatModelSelect { flex:0 1 230px; }
+#chatModeSelect { flex:0 0 80px; }
+.composer-toolbar .local-label { display:none; }
+.rag-chip { height:30px; padding:3px 8px; color:var(--subtle); border:1px solid transparent; font-size:11px; }
+.rag-chip[aria-pressed=true] { background:var(--selected); border-color:var(--border); color:var(--accent); }
+.stop-button { height:32px; padding:5px 12px; border:1px solid var(--danger); color:var(--danger); }
+.run-status { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; margin:0 4px 10px; }
+.run-status[data-state=error] { color:var(--danger); }
+.run-status[data-state=working]::before { content:''; width:6px; height:6px; background:var(--accent); border-radius:50%; }
+.approval-card { border:1px solid var(--accent); border-radius:10px; background:var(--surface); margin:0 0 12px; padding:14px; max-height:380px; overflow:auto; }
+.approval-card h3 { font-size:14px; margin:0 0 6px; }
+.approval-card p { font-size:12px; color:var(--muted); }
+.approval-card pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:180px; overflow:auto; border:1px solid var(--border); padding:8px; font-size:11px; background:var(--raised); }
+.message[data-status=running] .message-role::after { content:' / generating'; color:var(--accent); font-size:11px; text-transform:none; }
+.message-note { color:var(--subtle); font-size:11px; margin-top:7px; white-space:pre-wrap; }
+.message-sources { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+.source-chip { color:var(--accent); font:11px var(--mono); background:var(--selected); padding:4px 7px; border-radius:5px; }
+.tool-activity { margin:8px 0; color:var(--muted); font-size:12px; }
+.tool-activity ul { margin:6px 0 0; padding-left:18px; }
+.tool-activity li { padding:3px 0; }
+.mcp-card-head { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.mcp-card-head strong { overflow-wrap:anywhere; }
+.mcp-card-head small { display:block; color:var(--subtle); }
+.mcp-tools { display:grid; gap:6px; margin-top:10px; }
+.mcp-tool { display:flex; gap:10px; align-items:flex-start; padding:8px; border-radius:6px; background:var(--raised); }
+.mcp-tool input { flex:0 0 18px; margin-top:3px; }
+.mcp-tool span { min-width:0; font-size:12px; overflow-wrap:anywhere; }
+.mcp-tool small { display:block; color:var(--subtle); font-size:11px; max-height:60px; overflow:auto; }
+#ragIndexStatus { white-space:pre-wrap; }
+#backendTestResult[data-status=ok] { color:var(--success); }
+#backendTestResult[data-status=error] { color:var(--danger); }
+@media(max-width:760px) { .backend-grid { grid-template-columns:1fr; } .generation-controls { flex-wrap:wrap; } .generation-controls select { max-width:160px; } .composer-toolbar { align-items:flex-end; } .approval-card { max-height:280px; } }

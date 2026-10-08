@@ -112,9 +112,29 @@ kbd { font: 10px/1 var(--mono); color: var(--subtle); white-space: nowrap; }
 .chat-history { overflow: auto; flex: 1; min-height: 0; padding: 28px max(24px, calc((100% - 740px)/2)); scrollbar-gutter: stable; }
 .message { margin-bottom: 28px; }
 .message-role { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; color: var(--muted); font-weight: 500; }
-.message-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; font-size: 14px; }
+.message-body { overflow-wrap: anywhere; line-height: 1.7; font-size: 14px; }
+.message-body > :first-child { margin-top: 0; }
+.message-body > :last-child { margin-bottom: 0; }
+.message-body p { margin: 0 0 12px; }
+.message-body h1, .message-body h2, .message-body h3, .message-body h4, .message-body h5, .message-body h6 { line-height: 1.35; margin: 20px 0 8px; font-weight: 650; }
+.message-body h1 { font-size: 21px; }.message-body h2 { font-size: 18px; }.message-body h3 { font-size: 16px; }.message-body h4, .message-body h5, .message-body h6 { font-size: 14px; }
+.message-body ul, .message-body ol { margin: 0 0 12px; padding-left: 24px; }
+.message-body li { padding-left: 2px; margin: 3px 0; }
+.message-body blockquote { margin: 0 0 12px; padding: 2px 0 2px 12px; border-left: 3px solid var(--border); color: var(--muted); }
+.message-body code { font: .9em var(--mono); background: var(--raised); padding: 2px 4px; border-radius: 4px; }
+.message-body pre { max-width: 100%; overflow: auto; margin: 0 0 12px; padding: 12px; border: 1px solid var(--border); background: var(--raised); border-radius: 8px; white-space: pre; }
+.message-body pre code { background: none; padding: 0; }
+.message-body pre.message-plain { white-space: pre-wrap; overflow-wrap: anywhere; }
 .message-footnote { font-size: 11px; color: var(--subtle); margin-top: 8px; }
 .composer-wrap { width: min(100% - 48px, 740px); margin: 12px auto 20px; flex-shrink: 0; }
+.context-meter { margin: 0 4px 9px; color: var(--subtle); font-size: 11px; }
+.context-meter-labels { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 5px; }
+.context-meter-labels span:last-child { text-align: right; }
+.context-meter-track { height: 7px; position: relative; border-radius: 999px; background: var(--raised); border: 1px solid var(--border); overflow: visible; }
+.context-meter-fill { height: 100%; width: 0; border-radius: inherit; background: var(--accent); transition: width .18s ease; }
+.context-meter[data-state="near"] .context-meter-fill { background: #e9c477; }
+.context-meter[data-state="over"] .context-meter-fill { background: var(--danger); }
+.context-meter-threshold { position: absolute; top: -4px; height: 13px; width: 2px; background: var(--text); box-shadow: 0 0 0 1px var(--surface); }
 .conversation[data-empty="true"] .composer-wrap { margin-top: 26px; }
 .composer { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 18px #0000000d; }
 .composer:focus-within { border-color: var(--accent); }
@@ -205,6 +225,17 @@ input[type="checkbox"]:checked::after { opacity: 1; }
 .settings-note, #backendHelp { color: var(--muted); font-size: 12px; line-height: 1.75; }
 .settings-note { margin: 16px 0; }
 .stacked-setting { display: grid; gap: 8px; font-size: 13px; margin-bottom: 8px; }
+.agent-settings-form { display: grid; gap: 10px; }
+.agent-settings-form h4 { margin: 10px 0 0; font-size: 13px; }
+.agent-settings-form textarea { width: 100%; min-height: 82px; resize: vertical; }
+.agent-settings-form input:not([type="checkbox"]), .agent-settings-form select, #agentSettingsScope, #agentEditorSelect { width: 100%; }
+.agent-actions { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.agent-actions > .stacked-setting { min-width: 170px; flex: 1; margin: 0; }
+.agent-number-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+@media (max-width: 620px) { .agent-number-grid { grid-template-columns: 1fr; } }
+.condensation-setting { margin-top: 18px; }
+.condensation-setting textarea { width: 100%; min-height: 135px; padding: 10px; resize: vertical; background: var(--raised); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; line-height: 1.55; }
+.condensation-setting small { color: var(--subtle); font-size: 11px; line-height: 1.5; }
 .connection-test { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 16px 0; font-size: 12px; }
 #backendTestResult { color: var(--muted); }
 #backendTestResult[data-status="ok"] { color: var(--success); }

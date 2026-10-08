@@ -1,0 +1,11 @@
+{
+  "baseline_commit": "fd964ba48d07cf70e405e4805d02b42cb5cb5cca",
+  "node": 69,
+  "renderer_regression": 61,
+  "features_regression": 49,
+  "renderer_real_backend_protocol_fixtures": 21,
+  "total": 200,
+  "native_electron_tested": false,
+  "live_ollama_inference_tested": false,
+  "github_published": false
+}

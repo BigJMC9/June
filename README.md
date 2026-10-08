@@ -1,55 +1,149 @@
-# June - workspace tools
+# June
 
-Source update for BigJMC9/June main at 7d79ac1db9eaa16f56e699daf42533202a49bb0c.
+A project-aware desktop coding workspace with an Ollama backend, streamed chat,
+approval-gated agent tools, MCP tool servers, and local project retrieval.
 
-Close June and copy these files into your existing checkout, merging directories.
-Keep the existing electron/main.cjs, package-lock.json and LICENSE. This is not a
-standalone installer. The package entry point now loads electron/start.cjs, which
-registers additional APIs and then loads the existing main process. Start with
-npm run dev; no new npm dependencies were added. Restart Electron fully after
-updating, because the preload and entry point also change.
+This update is based on `BigJMC9/June` main at
+`fd964ba48d07cf70e405e4805d02b42cb5cb5cca`. It is a source update, not a signed
+installer. See [INSTALL.md](INSTALL.md) before copying it over a checkout.
 
-## Features
-- June chat title dropdown: rename, copy, Markdown/PDF export, save Markdown to
-  Documents, reviewed context summary, chat mode/context settings, and deletion.
-- Memories & skills: manual creation/editing/deletion, global/project scope,
-  enable switches, search/filter/sort, explicit skill approval, reviewed imports
-  from TXT/Markdown/JSON/SKILL.md or a public GitHub Markdown URL, JSON export.
-- Cookbook: local GGUF/Hugging Face cache discovery, saved model setups, quoted
-  launch/download commands, CPU/RAM and fixed executable version checks.
-- Temporary chats: in-memory messages and drafts, excluded from saved history
-  and knowledge, discard confirmation, normal draft restoration, and explicit
-  warning before copying/exporting outside the temporary session.
+## Start
 
-## Honest boundaries
-This remains a frontend for your custom pipeline. It does not send model
-requests, execute agent tools, apply patches, extract memories automatically,
-or assign confidence scores. Context compaction uses a summary you write/review.
-Cookbook prepares commands; it does not launch servers, install software, or
-download model files. Selecting a setup changes model preferences only.
+Use Node.js 22.16+ for development, tests, and the optional headless server.
+Packaged desktop builds use the Node runtime embedded in Electron. Existing
+Electron and builder dependencies are unchanged; no new npm dependency is added.
 
-Temporary mode prevents June from persisting conversation/draft content; it is
-not anonymity, secure deletion, protection from OS swap/crash dumps, or a promise
-about future backend/provider retention. Explicit exports/copies persist outside
-June. Global settings and manually chosen model folders can still be saved.
-Knowledge and setups are stored locally without encryption; do not enter secrets.
+```sh
+npm install
+npm run dev
+```
 
-New native APIs validate the sender, restrict network imports to public GitHub
-Markdown and use native save/folder dialogs. No raw Node, IPC or shell is exposed
-to the renderer. Model scans have depth/entry/result limits and report partial
-results. Imported skill code is never executed and approvals are not trusted.
-The original project host is preserved; this update is not a full security audit.
+Start Ollama separately, then open **Settings > Ollama**, use the default base URL
+`http://127.0.0.1:11434`, and select **Save & connect**. Alternatively, enable
+**Let June start Ollama** in **Settings > Performance** to manage a local Ollama
+process. Choose an installed model in the composer. June lists models; it does
+not download one automatically.
 
-Shortcuts: Ctrl/Cmd+N normal chat; Shift+N temporary chat; K/P search; B sidebar;
-comma settings. Enter adds a message and Shift+Enter inserts a newline.
+The normal desktop backend starts with the app and communicates through the
+sandboxed preload bridge. **No Python service or listening HTTP port is needed**
+for the desktop app. Ollama is the separate model server.
 
-## Data and integration
-New storage keys: june.knowledge.v1 and june.cookbook.v1. The selected model folder
-is stored in Electron user data. Existing chats, drafts and settings are kept.
-workspace-data.mjs exports buildContext for later integration: reviewed summary,
-recent messages, eligible scoped knowledge, and explicit temporary/retention
-flags. It performs no networking. The renderer's extras controller exposes a
-requestContext method but never submits it automatically.
+## Performance profiles
 
-See INSTALL.md for application instructions and VALIDATION.md for exact test
-scope. Run npm test for the dependency-free Node suite.
+**Settings > Performance** holds named profiles for the context window, output
+limit, temperature, model keep-alive, CPU/GPU mode, CPU threads, batch size,
+main GPU, and memory mapping. The active profile applies to chat, summaries,
+and embeddings. CPU only requests `num_gpu: 0`; GPU + CPU lets Ollama choose;
+GPU only requests full offload and checks `/api/ps` before a chat response. A
+model that does not fit entirely in GPU memory produces a clear error.
+
+Vulkan and Flash Attention are Ollama server startup settings. June applies
+them when **Let June start Ollama** is enabled and restarts only the Ollama
+process it owns when these settings change. An already running external Ollama
+server must be configured and restarted outside June. Managed Ollama requires
+a local `127.0.0.1` URL and an `ollama` executable on `PATH`. **Ollama
+diagnostics** shows startup settings, process output, failures, and the log
+path in June's user-data directory. The log can contain machine details and
+Ollama output; inspect it before sharing.
+
+If Ollama returns a runner error, June shows any specific cause found in its
+recent diagnostic output and adds **View Ollama diagnostics** beside the failed
+reply. The diagnostics panel is also under **Settings > Performance**. On
+Windows, Ollama's own server log is at `%LOCALAPPDATA%\Ollama\server.log`.
+If a `main_gpu` error says one device is available, clear **Main GPU index**
+in the profile and save it; the field is zero based within Ollama's selected
+GPU backend.
+
+## Interaction modes
+
+| Mode | Behavior |
+| --- | --- |
+| Chat | Streams replies and can inspect an open project with read-only file tools. Repository overview questions include the root README and project manifest when available. Optional RAG can add more context. |
+| Plan | Read-only project inspection and planning. No edits, terminal, or MCP tools. |
+| Agent | Project listing, file reading and literal search. File edits and terminal tools can be enabled in Settings; each edit or command needs approval. Enabled MCP tools always need approval too. |
+
+Models that explicitly lack Ollama tool capabilities can still answer in Chat
+from supplied context, but cannot inspect additional files on demand. Plan and
+Agent require tool support when tools are offered. Stop cancels the active
+request; partial normal-chat replies remain marked as stopped.
+
+## Workspace features
+
+- One collapsible sidebar with project selection and project-scoped chats/search.
+- Native folder selection; lazy file browsing; read-only previews; Git status.
+- Per-chat model/mode selection; streamed replies and timing/token metrics.
+- Reviewed write proposals with a before/after view and stale-file checks.
+- Local Memories & skills library and reviewed imports; approved relevant-scope
+  entries can now be included in actual requests.
+- Cookbook model/cache discovery and command preparation. It still does not
+  automatically install, download, or launch models.
+- Temporary chats: no June chat/draft persistence; no memories, skills, RAG, or
+  MCP context. This does not control provider retention or OS memory/swap.
+- Existing Markdown/PDF exports and reviewed context summaries remain. **Settings > Agents**
+  lets you create agent profiles with system prompts, instructions, and condensation
+  instructions. Choose a profile in the composer. Optional project and chat overrides
+  take priority over profile defaults. Set the condensation trigger percentage, summary
+  output budget, and recent turns to preserve there; 0% disables automatic condensation.
+  Compact context can also generate a draft
+  with Ollama for review before it changes future requests.
+  Older messages condensed out of the active context can be searched and read by the
+  agent when it needs details absent from the summary. Conversation retrieval is
+  scoped to the current chat. Enable **Include matches with project RAG** in an
+  agent profile or override to add relevant older message excerpts alongside
+  project retrieval results when project RAG is active.
+- The composer shows an estimated input-context token bar with the active agent's
+  condensation threshold. Responses show a live elapsed clock and save the total
+  wall time beside token count and generation speed. Chat messages render headings,
+  lists, emphasis, and code blocks from Markdown as text-safe elements.
+
+## MCP
+
+**Settings > MCP servers** supports explicitly connected stdio processes and
+Streamable HTTP tool endpoints. Configure a server, connect it, then enable the
+specific discovered tools that the agent may request. Every invocation is shown
+for approval. Connections are not automatically restarted when June launches.
+
+This is a bounded tools-only MCP client for the 2025-11-25, 2025-06-18, and
+2025-03-26 protocol versions, not the entire MCP surface. OAuth, resources,
+prompts, sampling, elicitation, legacy HTTP+SSE, and stream resumption are not
+implemented. See [docs/BACKEND.md](docs/BACKEND.md) for configuration and limits.
+
+## Project RAG
+
+**Settings > Project RAG** offers keyword retrieval without an embedding model,
+or hybrid keyword/vector retrieval using an installed Ollama embedding model.
+Choose a project, save retrieval settings, and **Index / update project**.
+Responses show the retrieved file/line references; use the composer's RAG control
+to omit retrieval for a request.
+
+The incremental SQLite index stores source snippets and optional embeddings
+locally. It respects Git ignore rules, excludes common generated folders,
+credential filenames, links, binaries, large files and unsupported formats, and
+checks content hashes before returning a result. Changing source files or the
+embedding model requires reindexing. Indexing is manual, not a file watcher.
+
+## Safety and limitations
+
+File reads/writes are restricted to registered project roots with traversal,
+link, and credential-path checks. Writes are off by default and never auto-apply.
+Approved commands and MCP server programs **are not an OS sandbox**: they run
+with your user permissions and can access other files or networks. Use trusted
+servers, inspect proposed commands, and keep separate backups/version control.
+
+Local settings, chats, and indexes are not encrypted. Credential filenames are
+not a secret scanner. An Ollama endpoint on localhost can still delegate cloud
+models; use local model weights for offline inference. Temporary mode is not
+anonymity, secure deletion, or a promise about external server logging.
+
+## Tests and build
+
+```sh
+npm test
+npm run test:backend
+npm run build:win
+```
+
+The test suite uses deterministic Ollama/MCP protocol fixtures, not a live LLM.
+[VALIDATION.md](VALIDATION.md) records the exact checks and native testing limits.
+The optional authenticated loopback server is documented in
+[docs/BACKEND.md](docs/BACKEND.md); normal desktop use does not require it.

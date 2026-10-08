@@ -1,0 +1,28 @@
+{
+  "passed": 21,
+  "checks": [
+    "Actual backend model list appears in composer",
+    "Fresh normal chat defaults to Chat mode",
+    "Ollama stream is displayed as assistant content",
+    "Normal replies and model choice persist",
+    "Token statistics are displayed",
+    "Navigation cannot discard an active run",
+    "Stop cancels the actual backend job",
+    "Ollama provider controls replace placeholder settings",
+    "Saved permissions reach the backend",
+    "File proposal requires visible approval",
+    "File does not exist before approval",
+    "Approval applies real fixture file",
+    "Project index stores real source chunks",
+    "RAG citations appear beneath the answer",
+    "Temporary response does not enter saved chat storage",
+    "Temporary mode disables RAG control",
+    "Temporary answer contains no RAG sources",
+    "MCP discovery and tool allowlisting reach actual server",
+    "MCP invocation has an explicit approval card",
+    "Approved MCP response completes the agent loop",
+    "No browser script errors"
+  ],
+  "errors": [],
+  "environment": "Chromium with simulated preload/storage and real Node backend talking to protocol fixtures"
+}

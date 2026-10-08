@@ -1,10 +1,10 @@
 import './extras-markup.mjs';
-import {KNOWLEDGE_KEY,COOKBOOK_KEY,normalizeKnowledge,normalizeCookbook,buildContext,serializeChat,memoryCandidates,parseSkill,duplicateMemoryIds,validEndpoint,launchCommand,downloadCommand} from './workspace-data.mjs';
+import {KNOWLEDGE_KEY,COOKBOOK_KEY,normalizeKnowledge,normalizeCookbook,resolveAgentConfig,condensationCutoff,condensationTriggerTokens,estimatedInputTokens,buildContext,buildCondensationPrompt,serializeChat,memoryCandidates,parseSkill,duplicateMemoryIds,validEndpoint,launchCommand,downloadCommand} from './workspace-data.mjs';
 
 export function installExtras(host) {
  const {state,$,$$,el,icon,native,desktop,toast,readJSON,store,currentChat,rootPath,composer,saveDraft,saveChats,sizeComposer,showChat,renderChats,renderConversation,selectChat,ask,showDialog,isTemporary}=host;
  let library=normalizeKnowledge(readJSON(KNOWLEDGE_KEY,{})),book=normalizeCookbook(readJSON(COOKBOOK_KEY,{}));
- let editMemoryId='',editSkillId='',editRecipeId='',chatTarget=null,compactTarget=null,imports=[],importProject='';
+ let editMemoryId='',editSkillId='',editRecipeId='',chatTarget=null,compactTarget=null,compacting=false,imports=[],importProject='';
  let modelRoot='',models=[],platform='',scanning=false;
  const clone=v=>structuredClone(v),uid=()=>crypto.randomUUID(),nameOf=p=>String(p||'').split(/[\\/]/).filter(Boolean).pop()||'Global';
  const guard=fn=>async e=>{try{await fn(e);}catch(error){toast(error.message||'The operation failed.');}};
@@ -32,8 +32,8 @@ export function installExtras(host) {
   ['saveMemoryBtn','saveSkillBtn','importKnowledgeBtn','fetchSkillBtn','confirmImportBtn'].forEach(id=>{$('#'+id).disabled=temp;});
   ['memoryAddScope','skillAddScope','importScope'].forEach(id=>{$('#'+id+' option[value="project"]').disabled=!rootPath();});
  }
- async function discardTemporary(){if(!isTemporary())return true;if((state.temporary.messages.length||composer.value.trim()||state.temporaryDraft.trim())&&!await ask('End temporary chat?','This conversation and its unsent draft will be discarded, not saved to history.',undefined,'Discard session'))return false;state.temporary=null;state.temporaryDraft='';composer.value='';return true;}
- async function startTemporary(){closeMenu();if(isTemporary()){await selectChat(state.temporaryReturnId);return;}if(!saveDraft())return;state.temporaryReturnId=state.activeChatId;state.temporary={id:'temporary-'+uid(),temporary:true,title:'June chat',projectPath:rootPath(),messages:[],createdAt:Date.now(),mode:state.settings.agentMode,contextBudget:state.settings.contextBudget};state.temporaryDraft='';state.activeChatId='';composer.value='';showChat();renderChats();renderConversation();sizeComposer();composer.focus();toast('Temporary chat started. Messages and drafts are not saved.');}
+ async function discardTemporary(){if(host.canNavigate&&!host.canNavigate())return false;if(!isTemporary())return true;if((state.temporary.messages.length||composer.value.trim()||state.temporaryDraft.trim())&&!await ask('End temporary chat?','This conversation and its unsent draft will be discarded, not saved to history.',undefined,'Discard session'))return false;state.temporary=null;state.temporaryDraft='';composer.value='';return true;}
+ async function startTemporary(){if(host.canNavigate&&!host.canNavigate())return;closeMenu();if(isTemporary()){await selectChat(state.temporaryReturnId);return;}if(!saveDraft())return;state.temporaryReturnId=state.activeChatId;state.temporary={id:'temporary-'+uid(),temporary:true,title:'June chat',projectPath:rootPath(),messages:[],createdAt:Date.now(),mode:state.settings.agentMode,contextBudget:state.settings.contextBudget};state.temporaryDraft='';state.activeChatId='';composer.value='';showChat();renderChats();renderConversation();sizeComposer();composer.focus();toast('Temporary chat started. Messages and drafts are not saved.');}
  async function consentExport(){return !isTemporary()||Boolean(await ask('Keep a copy of this temporary chat?','Copying or exporting creates a copy outside temporary mode. June cannot delete that copy for you.',undefined,'Keep a copy'));}
  async function copyText(value){if(!value)throw new Error('There is nothing to copy.');if(desktop?.copyText)await native('copyText',value);else await navigator.clipboard.writeText(value);toast('Copied.');}
  async function saveArtifact(payload){if(desktop?.saveArtifact)return native('saveArtifact',payload);if(payload.format==='pdf')throw new Error('PDF export requires the updated desktop app. Restart after updating.');const url=URL.createObjectURL(new Blob([payload.text],{type:payload.format==='json'?'application/json':'text/markdown;charset=utf-8'})),a=el('a');a.href=url;a.download=payload.name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);return {saved:true};}
@@ -41,7 +41,53 @@ export function installExtras(host) {
  function ensureChat(){if(currentChat())return currentChat();const chat={id:uid(),title:'June chat',projectPath:rootPath(),messages:[],createdAt:Date.now(),updatedAt:Date.now(),mode:state.settings.agentMode,contextBudget:state.settings.contextBudget};state.chats.push(chat);if(!saveChats()){state.chats.pop();throw new Error('Chat could not be saved.');}state.activeChatId=chat.id;state.drafts[chat.id]=composer.value;state.drafts['new:'+rootPath()]='';store('june.activeChatId',chat.id);store('june.drafts',state.drafts);return chat;}
  function openChatSettings(){chatTarget=currentChat();$('#chatMode').value=chatTarget?.mode||state.settings.agentMode;$('#chatBudget').value=chatTarget?.contextBudget||state.settings.contextBudget;showDialog('chatSettingsDialog');}
  $('#chatSettingsForm').addEventListener('submit',guard(e=>{e.preventDefault();const budget=Number($('#chatBudget').value);if(!Number.isInteger(budget)||budget<1024||budget>2097152)throw new Error('Invalid context budget.');const chat=chatTarget||ensureChat(),previous={mode:chat.mode,contextBudget:chat.contextBudget};chat.mode=$('#chatMode').value;chat.contextBudget=budget;if(!chat.temporary&&!saveChats()){Object.assign(chat,previous);return;}$('#chatSettingsDialog').close();renderChats();renderConversation();toast('Chat settings saved.');}));
- function openCompact(){compactTarget=currentChat();if(!compactTarget?.messages.length)return;$('#compactSummary').value=compactTarget.compaction?.summary||'';$('#compactKeep').value=Math.min(compactTarget.messages.length,6);$('#compactStatus').textContent=compactTarget.messages.length+' messages. Full history will remain unchanged.';showDialog('compactDialog');}
+ function openCompact(){if(host.canNavigate&&!host.canNavigate())return;compactTarget=currentChat();if(!compactTarget?.messages.length)return;$('#compactSummary').value=compactTarget.compaction?.summary||'';$('#compactKeep').value=Math.min(Math.max(0,compactTarget.messages.length-1),6);$('#generateCompactBtn').disabled=typeof desktop?.backendCall!=='function';$('#compactStatus').textContent=compactTarget.messages.length+' messages. Full history will remain unchanged.'+(desktop?.backendCall?'':' Draft generation requires the desktop Ollama backend.');showDialog('compactDialog');}
+ async function generateCompact(){
+  if(compacting)return;
+  const chat=compactTarget,keep=Number($('#compactKeep').value);
+  if(!chat)throw new Error('Open a chat with messages first.');
+  const policy=resolveAgentConfig(state.agentStore,rootPath(),chat).condensation;
+  const {prompt}=buildCondensationPrompt(chat,keep,policy.instructions);
+  const field=$('#compactSummary'),previous=field.value;
+  compacting=true;field.readOnly=true;$('#compactKeep').disabled=true;$('#generateCompactBtn').disabled=true;$('#cancelCompactBtn').hidden=false;$('#compactForm [type="submit"]').disabled=true;$('#compactDialog [data-extra="clear-compaction"]').disabled=true;
+  $('#compactStatus').textContent='Generating a draft with your saved instructions...';
+  try{
+   const draft=await host.generateCompaction(prompt,content=>{field.value=content.slice(0,16000);$('#compactStatus').textContent='Generating a draft...';},{maxOutputTokens:policy.summaryBudget});
+   if(draft.length>16000)throw new Error('The generated draft exceeds 16,000 characters. Ask for a shorter summary in condensation instructions.');
+   field.value=draft;$('#compactStatus').textContent='Draft ready. Review and edit it before saving.';
+  }catch(error){field.value=previous;$('#compactStatus').textContent=/cancel/i.test(error.message)?'Generation stopped. The previous summary is unchanged.':error.message;}
+  finally{compacting=false;field.readOnly=false;$('#compactKeep').disabled=false;$('#generateCompactBtn').disabled=false;$('#cancelCompactBtn').hidden=true;$('#compactForm [type="submit"]').disabled=false;$('#compactDialog [data-extra="clear-compaction"]').disabled=false;}
+ }
+ $('#compactDialog').addEventListener('close',()=>{if(compacting)void Promise.resolve(host.cancelCompaction()).catch(()=>{});});
+ async function autoCondenseBeforeSend({model,contextBudget,maxOutputTokens,pendingText,onStatus=()=>{}}){
+  const chat=currentChat();if(!chat?.messages.length)return;
+  const agent=resolveAgentConfig(state.agentStore,rootPath(),chat),policy=agent.condensation;
+  if(!policy.triggerPercent)return;
+  const context=buildContext(chat,library,rootPath(),isTemporary());
+  if(estimatedInputTokens(context,agent,pendingText)<condensationTriggerTokens(contextBudget,maxOutputTokens,policy.triggerPercent))return;
+  const through=condensationCutoff(chat.messages,policy.recentTurns),previous=chat.compaction;
+  const start=previous?.summary&&Number.isInteger(previous.through)&&previous.through>=0&&previous.through<=through?previous.through:0;
+  if(through<=start)throw new Error('The preserved recent turns exceed the condensation threshold. Reduce recent turns to preserve or raise the context budget.');
+  const outputBudget=Math.min(policy.summaryBudget,maxOutputTokens);
+  const limit=Math.min(100000,Math.max(1500,Math.floor((contextBudget-outputBudget-1800)*2)));
+  let summary=start?previous.summary:'',index=start,step=0;
+  while(index<through){
+   const chunk=[];let prompt='';
+   while(index<through){
+    const candidate=[...chunk,chat.messages[index]];
+    const attempt=buildCondensationPrompt({messages:candidate,compaction:summary?{summary,through:0}:null},0,policy.instructions).prompt;
+    if(attempt.length>limit&&chunk.length)break;
+    if(attempt.length>limit)throw new Error('A single message is too large to summarize. Increase the context budget or shorten that message.');
+    chunk.push(chat.messages[index]);prompt=attempt;index++;
+   }
+   onStatus(`Condensing earlier conversation (${++step})...`);
+   summary=await host.generateCompaction(prompt,()=>{},{model,maxOutputTokens:outputBudget});
+   if(summary.length>16000)throw new Error('The generated summary is too long. Lower the summary budget or shorten condensation instructions.');
+  }
+  const old=chat.compaction;chat.compaction={summary,through,createdAt:Date.now(),automatic:true};
+  if(!chat.temporary&&!saveChats()){chat.compaction=old;throw new Error('The condensed context could not be saved.');}
+  onStatus('Conversation context condensed.');
+ }
  $('#compactForm').addEventListener('submit',guard(e=>{e.preventDefault();const chat=compactTarget,keep=Number($('#compactKeep').value),summary=$('#compactSummary').value.trim();if(!chat||!summary||!Number.isInteger(keep)||keep<0||keep>100)throw new Error('Enter a summary and recent message count.');const old=chat.compaction;chat.compaction={summary,through:Math.max(0,chat.messages.length-keep),createdAt:Date.now()};if(!chat.temporary&&!saveChats()){chat.compaction=old;return;}$('#compactDialog').close();update();toast('Summary saved. History unchanged.');}));
  function saveLibrary(next){next=normalizeKnowledge(next);if(!store(KNOWLEDGE_KEY,next))throw new Error('Library could not be saved.');library=next;renderLibrary();$('#knowledgeStatus').textContent='Saved on this device.';}
  function scoped(item,scope){return scope==='all'||(scope==='global'?!item.projectPath:scope==='project'?Boolean(rootPath())&&item.projectPath===rootPath():!item.projectPath||item.projectPath===rootPath());}
@@ -99,7 +145,7 @@ export function installExtras(host) {
  $('#downloadForm').addEventListener('submit',guard(e=>{e.preventDefault();$('#downloadCommand').value=downloadCommand($('#downloadRepo').value.trim(),$('#downloadFile').value.trim(),platform);}));
  $('#downloadForm').addEventListener('input',()=>{$('#downloadCommand').value='';});$('#modelSearch').addEventListener('input',renderModels);$('#modelTypeFilter').addEventListener('change',renderModels);
  $$('[data-cookbook-tab]').forEach(b=>b.addEventListener('click',()=>bookTab(b.dataset.cookbookTab)));
- const actions={temporary:startTemporary,'end-temporary':()=>selectChat(state.temporaryReturnId),memories:()=>openKnowledge('memories'),skills:()=>openKnowledge('skills'),cookbook:()=>openCookbook(),'chat-settings':openChatSettings,compact:openCompact,
+ const actions={temporary:startTemporary,'end-temporary':()=>selectChat(state.temporaryReturnId),memories:()=>openKnowledge('memories'),skills:()=>openKnowledge('skills'),cookbook:()=>openCookbook(),'chat-settings':openChatSettings,compact:openCompact,'generate-compaction':generateCompact,'cancel-compaction':()=>host.cancelCompaction(),
   'copy-chat':async()=>{const c=currentChat();if(c?.messages.length&&await consentExport())await copyText(serializeChat(c));},'export-md':()=>exportChat('md'),'export-pdf':()=>exportChat('pdf'),'save-document':()=>exportChat('md',true),
   'clear-compaction':()=>{if(!compactTarget)return;const old=compactTarget.compaction;delete compactTarget.compaction;if(!compactTarget.temporary&&!saveChats()){compactTarget.compaction=old;return;}$('#compactDialog').close();update();},
   'import-knowledge':()=>{noTemp();$('#knowledgeFileInput').click();},'export-knowledge':exportKnowledge,'confirm-import':confirmImport,'cancel-edit':resetEditors,'tidy-memories':tidyMemories,
@@ -107,5 +153,16 @@ export function installExtras(host) {
   'open-model-page':()=>{const repo=$('#downloadRepo').value.trim();downloadCommand(repo,$('#downloadFile').value.trim(),platform);return native('openModelPage',repo);}};
  document.addEventListener('click',guard(async e=>{const b=e.target.closest('[data-extra]');if(b&&!b.disabled){closeMenu();await actions[b.dataset.extra]?.();}if(e.target.closest('#chatMenu [data-action]'))closeMenu();}));
  resetEditors();update();
- return {update,closeMenu,toggleMenu,menuOpen:()=>menu.matches(':popover-open'),startTemporary,discardTemporary,openKnowledge,openCookbook,requestContext:()=>({...buildContext(currentChat(),library,rootPath(),isTemporary()),modelSetup:book.recipes.find(r=>r.id===book.activeRecipeId)||null})};
+ function requestContext(){
+  const chat=currentChat(),base=buildContext(chat,library,rootPath(),isTemporary());
+  const retrieval=resolveAgentConfig(state.agentStore,rootPath(),chat).conversationRetrieval;
+  const c=chat?.compaction,through=c?.summary&&Number.isInteger(c.through)&&c.through>=0&&c.through<=chat.messages.length?c.through:0;
+  const conversationArchive=retrieval.enabled?(chat?.messages||[]).slice(0,through).map((message,index)=>({index:index+1,role:message.role,content:message.content})):[];
+  return {...base,conversationArchive,conversationRetrieval:retrieval,modelSetup:book.recipes.find(r=>r.id===book.activeRecipeId)||null};
+ }
+ function contextEstimate(pending=''){
+  const chat=currentChat(),selected=chat||{agentOverride:state.pendingAgentId?{agentId:state.pendingAgentId}:{}};
+  return estimatedInputTokens(buildContext(chat,library,rootPath(),isTemporary()),resolveAgentConfig(state.agentStore,rootPath(),selected),pending);
+ }
+ return {update,closeMenu,toggleMenu,menuOpen:()=>menu.matches(':popover-open'),startTemporary,discardTemporary,openKnowledge,openCookbook,autoCondenseBeforeSend,requestContext,contextEstimate};
 }

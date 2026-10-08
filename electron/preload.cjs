@@ -1,6 +1,13 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const desktopApi = Object.freeze({
   isDesktop: true,
+  backendCall: (action, data = {}) => ipcRenderer.invoke('june:backend', { action, data }),
+  onBackendEvent: callback => {
+    if (typeof callback !== 'function') throw new TypeError('Callback required');
+    const listener = (_event, data) => callback(data);
+    ipcRenderer.on('june:backend-event', listener);
+    return () => ipcRenderer.removeListener('june:backend-event', listener);
+  },
   getRuntimeInfo: () => ipcRenderer.invoke('june:get-runtime-info'),
   minimizeWindow: () => ipcRenderer.invoke('june:window-minimize'),
   toggleMaximizeWindow: () => ipcRenderer.invoke('june:window-toggle-maximize'),

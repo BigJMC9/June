@@ -1,4 +1,9 @@
+import './backend-markup.mjs';
+import { installBackend } from './backend-ui.js';
 import { installExtras } from './extras.js';
+import { installAgents } from './agents-ui.js';
+import { renderMarkdown } from './chat-format.mjs';
+import { AGENTS_KEY, DEFAULT_CONDENSATION_INSTRUCTIONS, normalizeAgentStore } from './workspace-data.mjs';
 /* June renderer. Native capabilities remain behind the existing preload bridge. */
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -73,13 +78,15 @@ const defaults = {
   theme: 'dark', density: 'comfortable', rememberProject: true, showHidden: false,
   excludeCommon: true, previewLimit: 2097152, backendUrl: 'http://127.0.0.1:8765',
   agentMode: 'agent', defaultModel: '', contextBudget: 32768,
-  requireApproval: true, allowTerminal: false, allowNetwork: false
+  requireApproval: true, allowTerminal: false, allowNetwork: false,
+  condensationInstructions: DEFAULT_CONDENSATION_INSTRUCTIONS
 };
 const enums = { theme: ['dark', 'midnight', 'light'], density: ['comfortable', 'compact'], agentMode: ['agent', 'ask', 'plan'], previewLimit: [524288, 1048576, 2097152, 4194304] };
 function validSetting(key, value) {
   if (key in enums) return enums[key].includes(value);
   if (typeof defaults[key] === 'boolean') return typeof value === 'boolean';
   if (key === 'contextBudget') return Number.isInteger(value) && value >= 1024 && value <= 2097152;
+  if (key === 'condensationInstructions') return typeof value === 'string' && value.trim().length > 0 && value.length <= 8000;
   if (key === 'backendUrl') {
     if (typeof value !== 'string') return false;
     if (!value) return true;
@@ -98,7 +105,7 @@ const chats = (Array.isArray(savedChats) ? savedChats : []).filter(chat => chat 
 }));
 const loadedDrafts = readJSON('june.drafts', {});
 const state = {
-  settings, chats, projects: [], project: null, activeChatId: '', file: '', inspector: '',
+  settings, chats, agentStore: normalizeAgentStore(readJSON(AGENTS_KEY, {}),settings.condensationInstructions), pendingAgentId: '', projects: [], project: null, activeChatId: '', file: '', inspector: '',
   temporary: null, temporaryDraft: '', temporaryReturnId: '',
   drafts: loadedDrafts && typeof loadedDrafts === 'object' && !Array.isArray(loadedDrafts) ? loadedDrafts : {},
   epoch: 0, fileSeq: 0, treeSeq: 0, gitSeq: 0, searchSeq: 0, healthSeq: 0,
@@ -107,6 +114,8 @@ const state = {
   chatsExpanded: readJSON('june.chatsExpanded', true) !== false
 };
 let extras;
+let backend;
+let agents;
 const composer = $('#composerInput');
 const isTemporary = () => Boolean(state.temporary);
 const rootPath = () => state.project?.path || '';
@@ -129,6 +138,7 @@ function sizeComposer() {
   composer.style.height = 'auto';
   composer.style.height = Math.min(180, Math.max(82, composer.scrollHeight)) + 'px';
   $('#sendBtn').disabled = !composer.value.trim();
+  backend?.updateContextMeter();
 }
 function restoreDraft() { composer.value = isTemporary() ? state.temporaryDraft : (typeof state.drafts[draftKey()] === 'string' ? state.drafts[draftKey()] : ''); sizeComposer(); }
 function saveChats() { return store('june.chats', state.chats.filter(chat => !chat.temporary)); }
@@ -202,12 +212,16 @@ function renderConversation() {
   history.replaceChildren();
   for (const message of chat?.messages || []) {
     const article = el('article', 'message');
-    article.append(el('div', 'message-role', message.role === 'user' ? 'You' : message.role === 'assistant' ? 'June' : 'Note'), el('div', 'message-body', message.content));
+    const body=el('div','message-body');body.append(renderMarkdown(message.content));
+    article.append(el('div', 'message-role', message.role === 'user' ? 'You' : message.role === 'assistant' ? 'June' : 'Note'), body);
+    if (message.id) article.dataset.messageId = message.id;
+    backend?.renderMessageExtras(article, message);
     if (message.role === 'user') article.append(el('div', 'message-footnote', isTemporary() ? 'Temporary - not saved' : 'Saved on this device'));
     history.append(article);
   }
   history.scrollTop = history.scrollHeight;
   extras?.update();
+  backend?.sync();
 }
 function showChat() {
   state.fileSeq++;
@@ -218,6 +232,7 @@ function showChat() {
   requestAnimationFrame(sizeComposer);
 }
 async function selectChat(id = '') {
+  if (backend && !backend.canNavigate()) return;
   if (isTemporary()) { if (!await extras.discardTemporary()) return; } else saveDraft();
   state.activeChatId = state.chats.some(chat => chat.id === id && chat.projectPath === rootPath()) ? id : '';
   store('june.activeChatId', state.activeChatId);
@@ -225,8 +240,10 @@ async function selectChat(id = '') {
   composer.focus();
 }
 async function switchProject(project, preferredChat = '') {
+  if (backend && !backend.canNavigate()) return;
   if (isTemporary()) { if (!await extras.discardTemporary()) return; } else saveDraft();
   hideProjectMenu();
+  if (project?.path !== rootPath()) state.pendingAgentId='';
   state.epoch++; state.searchSeq++; state.treeSeq++; state.gitSeq++;
   state.project = project;
   state.expanded.clear();
@@ -420,7 +437,7 @@ function showDialog(id) {
   if (!dialog.open) dialog.showModal();
 }
 function openSettings(tab = 'general') {
-  syncSettings(); selectSettingsTab(tab); showDialog('settingsModal');
+  syncSettings(); agents?.sync(); selectSettingsTab(tab); showDialog('settingsModal');
 }
 function selectSettingsTab(name) {
   $$('[data-settings]').forEach(tab => {
@@ -428,6 +445,7 @@ function selectSettingsTab(name) {
     tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1;
     $('#' + tab.getAttribute('aria-controls')).hidden = !active;
   });
+  $('#settingsSaveState').textContent=name==='agents'?'Save changes with the button in this panel.':'Changes save automatically.';
 }
 function syncSettings() {
   $$('[data-setting]').forEach(input => {
@@ -469,6 +487,7 @@ function ask(title, message, initial, confirmLabel) {
   });
 }
 async function editChat(remove) {
+  if (backend && !backend.canNavigate()) return;
   const chat = currentChat();
   if (!chat) return;
   extras?.closeMenu();
@@ -487,6 +506,7 @@ async function editChat(remove) {
   renderChats(); renderConversation(); restoreDraft();
 }
 async function removeProject() {
+  if (backend && !backend.canNavigate()) return;
   const project = state.project;
   if (!project) return;
   const answer = await ask('Remove project?', `Remove ${project.name} from June? Files and saved chats are kept. Reopen the folder to see its chats again.`, undefined, 'Remove project');
@@ -556,13 +576,13 @@ function saveMessage(event) {
   const now = Date.now(), oldDraftKey = draftKey();
   let chat = currentChat();
   const isNew = !chat;
-  if (isNew) chat = { id: crypto.randomUUID(), title: content.length > 52 ? content.slice(0, 49) + '...' : content, projectPath: rootPath(), messages: [], createdAt: now, updatedAt: now, mode: state.settings.agentMode };
-  const message = { role: 'user', content, createdAt: now };
+  if (isNew) chat = { id: crypto.randomUUID(), title: content.length > 52 ? content.slice(0, 49) + '...' : content, projectPath: rootPath(), messages: [], createdAt: now, updatedAt: now, mode: state.settings.agentMode, agentOverride: state.pendingAgentId ? {agentId:state.pendingAgentId} : {} };
+  const message = { id: crypto.randomUUID(), role: 'user', content, createdAt: now };
   const previousUpdatedAt = chat.updatedAt;
   chat.messages.push(message); chat.updatedAt = now;
   if (isTemporary()) {
     state.temporaryDraft = ''; composer.value = '';
-    renderChats(); renderConversation(); sizeComposer(); composer.focus(); return;
+    renderChats(); renderConversation(); sizeComposer(); composer.focus(); return chat;
   }
   if (isNew) state.chats.push(chat);
   if (!saveChats()) { chat.messages.pop(); chat.updatedAt = previousUpdatedAt; if (isNew) state.chats = state.chats.filter(item => item !== chat); return; }
@@ -570,6 +590,7 @@ function saveMessage(event) {
   state.drafts[oldDraftKey] = ''; state.drafts[chat.id] = '';
   store('june.drafts', state.drafts); store('june.activeChatId', chat.id);
   composer.value = ''; renderChats(); renderConversation(); sizeComposer(); composer.focus();
+  return chat;
 }
 const actions = {
   sidebar: toggleSidebar, 'add-project': addProject, personal: () => switchProject(null),
@@ -626,7 +647,10 @@ $$('[data-setting]').forEach(input => {
   });
 });
 $('#actionForm').addEventListener('submit', event => { event.preventDefault(); if ($('#actionInput').required && !$('#actionInput').value.trim()) return; $('#actionDialog').close('confirm'); });
-$('#composerForm').addEventListener('submit', saveMessage);
+$('#composerForm').addEventListener('submit', event => {
+  event.preventDefault();
+  if (backend?.available) void backend.send(); else saveMessage(event);
+});
 composer.addEventListener('input', () => { sizeComposer(); saveDraft(); });
 composer.addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229) { event.preventDefault(); $('#composerForm').requestSubmit(); } });
 $('#paletteInput').addEventListener('input', () => {
@@ -697,6 +721,13 @@ async function init() {
 extras = installExtras({ state, $, $$, el, icon, native, desktop, toast, readJSON, store,
   currentChat, rootPath, composer, saveDraft, restoreDraft, saveChats, sizeComposer, showChat,
   renderChats, renderConversation, selectChat, openSettings, ask, showDialog, syncSettings, resetHealth,
-  isTemporary, sync: () => { renderChats(); renderConversation(); restoreDraft(); }
+  isTemporary, canNavigate: () => backend?.canNavigate() ?? true,
+  generateCompaction: (prompt,onProgress,options) => backend?.generateCompaction(prompt,onProgress,options) ?? Promise.reject(new Error('Ollama backend is unavailable.')),
+  cancelCompaction: () => backend?.cancelCompaction(),
+  sync: () => { renderChats(); renderConversation(); restoreDraft(); }
 });
-void init();
+backend = installBackend({ $, $$, el, icon, state, desktop, native, toast, store, readJSON,
+  currentChat, rootPath, isTemporary, composer, saveMessage, saveChats, renderConversation,
+  renderChats, openSettings, openFile, ask, extras, renderChanges, renderFiles });
+agents = installAgents({ state, $, el, store, currentChat, rootPath, saveChats, toast, onChange:()=>backend.sync() });
+void init().then(() => backend.sync());
